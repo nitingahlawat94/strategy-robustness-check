@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strategy Robustness Check</title>
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#14213d;--mute:#5b6678;--line:#d5dbe4;--acc:#2457d6;--bad:#c2392b;--good:#1e8e5a;--warn:#b7791f;--accsoft:#e6edfb;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1624;--card:#18223a;--ink:#e8edf7;--mute:#9aa6bd;--line:#2a3652;--acc:#6f9bff;--bad:#ff7a6b;--good:#4cc790;--warn:#e3b04b;--accsoft:#1e2c52}}
+:root[data-theme="dark"]{--bg:#0f1624;--card:#18223a;--ink:#e8edf7;--mute:#9aa6bd;--line:#2a3652;--acc:#6f9bff;--bad:#ff7a6b;--good:#4cc790;--warn:#e3b04b;--accsoft:#1e2c52}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+h1{font:600 clamp(26px,5vw,36px)/1.15 Georgia,"Iowan Old Style",serif;margin:0 0 6px}
+h2{font:600 18px/1.3 Georgia,serif;margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 22px;max-width:60ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:4px}
+input[type=number]{width:140px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button,.file{padding:10px 16px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;font:600 15px inherit;cursor:pointer}
+button.ghost,.file{background:transparent;color:var(--acc)}
+.file input{display:none}
+button:focus-visible,.file:focus-within,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+#drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--mute);margin-bottom:14px}
+#drop.on{border-color:var(--acc);background:var(--accsoft)}
+#msg{color:var(--bad);font-size:14px;min-height:20px;margin-top:8px}
+#out{display:none}
+.score{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.big{font:600 72px/1 Georgia,serif}
+.gauge{flex:1;min-width:200px}
+.bar{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--bad),var(--warn),var(--good));position:relative}
+.bar i{position:absolute;top:-5px;width:4px;height:22px;background:var(--ink);border-radius:2px;transform:translateX(-2px)}
+.verdict{font-weight:600;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.m{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.m b{display:block;font-size:20px}
+.m span{font-size:13px;color:var(--mute)}
+ul.fl{margin:0;padding-left:20px}ul.fl li{margin:6px 0}
+.scroll{overflow-x:auto}
+svg{width:100%;height:auto;display:block;min-width:520px}
+.note{font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<h1>Strategy robustness check</h1>
+<p class="sub">Upload your trade list and see how fragile the results are. Everything runs in your browser; your file is never uploaded.</p>
+
+<div class="card">
+<div id="drop">Drop a CSV of trades here, or choose a file</div>
+<div class="row">
+<label class="file">Choose CSV<input id="f" type="file" accept=".csv,.txt,text/csv"></label>
+<button class="ghost" id="demo" type="button">Use sample data</button>
+<div><label for="bal">Starting balance</label><input id="bal" type="number" value="100000" min="1"></div>
+<div><label for="ruin">Ruin level (drawdown %)</label><input id="ruin" type="number" value="30" min="1" max="99"></div>
+<button id="go" type="button">Run check</button>
+</div>
+<div id="msg" role="alert"></div>
+<p class="note" style="margin:8px 0 0">Needs a profit column per trade (profit, pnl, p&amp;l, net) or an MT5 balance-curve export with a &lt;BALANCE&gt; column. Zero-profit rows are skipped.</p>
+</div>
+
+<div id="out">
+<div class="card"><div class="score"><div class="big" id="sc">0</div>
+<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div></div></div></div>
+<div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
+<div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
+<div class="card"><h2>Your equity vs 40 reshuffled orders</h2><p class="note">Same trades, different order. A wide fan means your result depends on luck of sequence.</p><div class="scroll" id="c1"></div></div>
+<div class="card"><h2>Worst drawdown across 2,000 reshuffles</h2><div class="scroll" id="c2"></div></div>
+<p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
+</div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+let trades=[],srcName='';
+const fmt=(x,d=0)=>x.toLocaleString(undefined,{maximumFractionDigits:d});
+const pct=x=>(x*100).toFixed(1)+'%';
+function parseCSV(t){
+  const first=(t.split(/\r?\n/).find(l=>l.trim())||'');
+  const d=[',',';','\t'].map(c=>[c,first.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c=='"')q=true;
+    else if(c==d){row.push(f);f=''}
+    else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;row.push(f);rows.push(row);row=[];f=''}
+    else f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  return{rows:rows.filter(r=>r.some(x=>x.trim())),d};
+}
+function num(s,d){
+  s=String(s==null?'':s).trim();const neg=/^\(.*\)$/.test(s);
+  s=s.replace(/[()\s₹$€£]/g,'');
+  if(d==';'&&s.includes(',')&&!s.includes('.'))s=s.replace(',','.');else s=s.replace(/,/g,'');
+  const v=Number(s);return s===''||isNaN(v)?NaN:(neg?-v:v);
+}
+function extract(text){
+  const{rows,d}=parseCSV(text);
+  if(!rows.length)throw new Error('The file is empty.');
+  const hasHead=rows[0].some(c=>isNaN(num(c,d)));
+  const head=hasHead?rows[0].map(h=>h.trim()):null;
+  const body=hasHead?rows.slice(1):rows;
+  let col=-1;
+  if(head){
+    col=head.findIndex(h=>/^(net\s*)?profit$/i.test(h));
+    if(col<0)col=head.findIndex(h=>/profit|pnl|p\s*[&\/]\s*l|realized|result|gain|net/i.test(h)&&!/commission|swap|fee|%/i.test(h));
+    if(col<0){const b=head.findIndex(h=>/^<?\s*balance\s*>?$/i.test(h));
+      if(b>=0){const bv=body.map(r=>num(r[b],d)).filter(x=>!isNaN(x));
+        return{vals:bv.slice(1).map((x,i)=>x-bv[i]).filter(x=>Math.abs(x)>1e-9),name:head[b]+' (balance changes = trade results)'}}}
+  }
+  if(col<0){
+    const w=Math.max(...rows.map(r=>r.length));let best=-1,cnt=0;
+    for(let c=0;c<w;c++){if(head&&/deposit|load|margin|equity|%|date|time|ticket|volume|price|\bid\b|size/i.test(head[c]||''))continue;const k=body.filter(r=>!isNaN(num(r[c],d))).length;if(k>=cnt){cnt=k;best=c}}
+    col=best;
+  }
+  const vals=body.map(r=>num(r[col],d)).filter(x=>!isNaN(x)&&x!==0);
+  return{vals,name:head?head[col]:'column '+(col+1)};
+}
+function pathStats(a,bal){
+  let e=bal,p=bal,dd=0,ls=0,cur=0;
+  for(const x of a){e+=x;if(e>p)p=e;const d=p>0?(p-e)/p:0;if(d>dd)dd=d;if(x<0){cur++;if(cur>ls)ls=cur}else cur=0}
+  return{dd,ls};
+}
+const eq=(a,bal)=>{let e=bal;return[bal,...a.map(x=>e+=x)]};
+const qt=(s,p)=>s[Math.min(s.length-1,Math.floor(p*s.length))];
+function analyse(v,bal,ruinPct){
+  const n=v.length,N=2000,ruin=ruinPct/100;
+  const wins=v.filter(x=>x>0),loss=v.filter(x=>x<0);
+  const sumW=wins.reduce((a,b)=>a+b,0),sumL=-loss.reduce((a,b)=>a+b,0),total=sumW-sumL;
+  const pf=sumL>0?sumW/sumL:Infinity;
+  const k=Math.max(1,Math.ceil(n*0.05)),trimmed=total-[...wins].sort((a,b)=>b-a).slice(0,k).reduce((a,b)=>a+b,0);
+  const act=pathStats(v,bal);
+  const a=v.slice(),dds=[],lss=[],paths=[];let ruined=0,prof=0;
+  for(let i=0;i<N;i++){
+    for(let j=n-1;j>0;j--){const r=Math.random()*(j+1)|0;[a[j],a[r]]=[a[r],a[j]]}
+    const s=pathStats(a,bal);dds.push(s.dd);lss.push(s.ls);
+    if(i<40)paths.push(eq(a,bal));
+    let e=bal,hit=false;
+    for(let j=0;j<n;j++){e+=v[Math.random()*n|0];if(e<=bal*(1-ruin))hit=true}
+    if(hit)ruined++;if(e>bal)prof++;
+  }
+  dds.sort((x,y)=>x-y);lss.sort((x,y)=>x-y);
+  const p95=qt(dds,.95),pProf=prof/N,pRuin=ruined/N;
+  const cl=x=>Math.max(0,Math.min(1,x));
+  const r=act.dd>0?p95/act.dd:1;
+  const sc=Math.round(cl((pProf-.5)/.5)*30+cl(pf-1)*20+Math.min(n/200,1)*20+Math.max(0,15-Math.max(0,r-1.3)*10)+(trimmed>0?15:total>0?4:0));
+  const fl=[];
+  if(n<100)fl.push(`Only ${n} trades. Fewer than 100 trades is usually noise, not proof of an edge.`);
+  if(total>0&&trimmed<=0)fl.push(`Remove the best ${k} winning trade${k>1?'s':''} (top 5%) and the strategy loses money. Profit depends on a few lucky trades.`);
+  if(r>1.5)fl.push(`Your backtest drawdown (${pct(act.dd)}) is far smaller than the 95th-percentile drawdown from reshuffling (${pct(p95)}). Expect worse live.`);
+  if(pProf<.9)fl.push(`Only ${pct(pProf)} of bootstrap simulations ended in profit.`);
+  if(pf>3&&n<150)fl.push(`Profit factor of ${pf.toFixed(2)} on ${n} trades is a classic sign of curve-fitting.`);
+  if(pRuin>.05)fl.push(`${pct(pRuin)} of simulations hit your ${ruinPct}% drawdown ruin level.`);
+  if(total<=0)fl.push('The strategy lost money overall in this trade list.');
+  if(!loss.length)fl.unshift('Every trade is a winner. This is almost certainly not a trade-profit column, so ignore this score and check the column name shown above.');
+  if(!fl.length)fl.push('No major warning signs found. That does not guarantee future results.');
+  return{n,total,pf,wr:wins.length/n,avgW:wins.length?sumW/wins.length:0,avgL:loss.length?sumL/loss.length:0,exp:total/n,act,p50:qt(dds,.5),p95,ls:act.ls,ls95:qt(lss,.95),pProf,pRuin,sc:loss.length?sc:0,fl,paths,actEq:eq(v,bal),dds,bal};
+}
+function fan(R){
+  const W=640,H=260,P=34,all=[R.actEq,...R.paths];
+  let lo=Infinity,hi=-Infinity;all.forEach(p=>p.forEach(y=>{if(y<lo)lo=y;if(y>hi)hi=y}));
+  const n=R.actEq.length,step=Math.ceil(n/250),X=i=>P+(W-P-8)*i/(n-1),Y=y=>H-22-(H-34)*(y-lo)/((hi-lo)||1);
+  const d=p=>p.filter((_,i)=>i%step==0||i==n-1).map((y,i,arr)=>{const idx=Math.min(i*step,n-1);return(i?'L':'M')+X(idx).toFixed(1)+' '+Y(y).toFixed(1)}).join('');
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Equity curve fan chart">`;
+  s+=`<line x1="${P}" x2="${W-8}" y1="${Y(R.bal)}" y2="${Y(R.bal)}" stroke="var(--line)" stroke-dasharray="4 4"/>`;
+  R.paths.forEach(p=>s+=`<path d="${d(p)}" fill="none" stroke="var(--acc)" stroke-opacity=".22" stroke-width="1"/>`);
+  s+=`<path d="${d(R.actEq)}" fill="none" stroke="var(--ink)" stroke-width="2.2"/>`;
+  s+=`<text x="${P}" y="14" font-size="11" fill="var(--mute)">${fmt(hi)}</text><text x="${P}" y="${H-8}" font-size="11" fill="var(--mute)">${fmt(lo)}</text><text x="${W-8}" y="${H-8}" font-size="11" fill="var(--mute)" text-anchor="end">trade ${n-1}</text></svg>`;
+  return s;
+}
+function hist(R){
+  const W=640,H=240,P=30,B=18,mx=Math.max(R.dds[R.dds.length-1],R.act.dd)*1.05||1,bins=Array(B).fill(0);
+  R.dds.forEach(x=>bins[Math.min(B-1,Math.floor(x/mx*B))]++);
+  const top=Math.max(...bins),bw=(W-P-8)/B,X=v=>P+(W-P-8)*v/mx;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Max drawdown histogram">`;
+  bins.forEach((c,i)=>{const h=(H-50)*c/top;s+=`<rect x="${P+i*bw+1}" y="${H-26-h}" width="${bw-2}" height="${h}" fill="var(--acc)" fill-opacity=".55"/>`});
+  s+=`<line x1="${X(R.act.dd)}" x2="${X(R.act.dd)}" y1="10" y2="${H-26}" stroke="var(--ink)" stroke-width="2"/><text x="${X(R.act.dd)+4}" y="22" font-size="11" fill="var(--ink)">yours ${pct(R.act.dd)}</text>`;
+  s+=`<line x1="${X(R.p95)}" x2="${X(R.p95)}" y1="10" y2="${H-26}" stroke="var(--bad)" stroke-width="2" stroke-dasharray="5 3"/><text x="${X(R.p95)-4}" y="38" font-size="11" fill="var(--bad)" text-anchor="end">95th pct ${pct(R.p95)}</text>`;
+  s+=`<text x="${P}" y="${H-8}" font-size="11" fill="var(--mute)">0%</text><text x="${W-8}" y="${H-8}" font-size="11" fill="var(--mute)" text-anchor="end">${pct(mx)} max drawdown</text></svg>`;
+  return s;
+}
+function render(R){
+  $('#out').style.display='block';
+  $('#sc').textContent=R.sc;$('#mk').style.left=R.sc+'%';
+  $('#vd').textContent=R.wr===1?'Check your file: no losing trades found':R.sc>=75?'Looks robust':R.sc>=50?'Mixed: some fragility':'Fragile: likely overfit or lucky';
+  $('#src').textContent=`${R.n} trades read from ${srcName}`;
+  $('#fl').innerHTML=R.fl.map(t=>`<li>${t}</li>`).join('');
+  const m=[['Net profit',fmt(R.total)],['Trades',R.n],['Win rate',pct(R.wr)],['Profit factor',isFinite(R.pf)?R.pf.toFixed(2):'∞'],['Avg win / avg loss',fmt(R.avgW)+' / '+fmt(R.avgL)],['Expectancy per trade',fmt(R.exp,2)],['Backtest max drawdown',pct(R.act.dd)],['Median shuffled drawdown',pct(R.p50)],['Worst-case (95%) drawdown',pct(R.p95)],['Longest losing streak',R.ls],['Losing streak, 95% case',R.ls95],['Chance of profit',pct(R.pProf)],['Chance of ruin',pct(R.pRuin)]];
+  $('#mt').innerHTML=m.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+  $('#c1').innerHTML=fan(R);$('#c2').innerHTML=hist(R);
+  $('#out').scrollIntoView({behavior:'smooth'});
+}
+function go(){
+  $('#msg').textContent='';
+  if(trades.length<10){$('#msg').textContent='Load a CSV with at least 10 non-zero trades first.';return}
+  const bal=+$('#bal').value,ru=+$('#ruin').value;
+  if(!(bal>0)||!(ru>0&&ru<100)){$('#msg').textContent='Enter a balance above 0 and a ruin level between 1 and 99.';return}
+  setTimeout(()=>render(analyse(trades,bal,ru)),10);
+}
+function load(text,name){
+  try{const r=extract(text);trades=r.vals;srcName=name+' ('+r.name+')';
+    if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades in "${r.name}". Check that this is the profit column.`;return}
+    go()}catch(e){$('#msg').textContent=e.message}
+}
+function readFile(f){if(!f)return;const r=new FileReader();r.onload=()=>load(r.result,f.name);r.readAsText(f)}
+$('#f').onchange=e=>readFile(e.target.files[0]);
+$('#go').onclick=go;
+$('#demo').onclick=()=>{let t='Profit\n';for(let i=0;i<160;i++)t+=(Math.random()<.52?(300+Math.random()*500):-(250+Math.random()*450)).toFixed(2)+'\n';load(t,'sample data')};
+const dz=$('#drop');
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('on')}));
+dz.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));
+</script>
+</body>
+</html>
