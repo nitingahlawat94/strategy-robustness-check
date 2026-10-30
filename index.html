@@ -23,12 +23,14 @@
 </div>
 <div id="msg" role="alert"></div>
 <details><summary>Optional: out-of-sample and optimization data</summary>
-<p class="note">Walk-forward check: load trades from a period your optimizer never saw. Sharper Deflated Sharpe: paste the net profit of each optimization pass, one per line (5 or more).</p>
+<p class="note">Walk-forward check: load trades from a period your optimizer never saw. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
 <div class="row"><label class="file">Choose out-of-sample CSV<input id="f2" type="file" accept=".csv,.txt,text/csv"></label><span id="f2n" class="note"></span></div>
 <label for="ps" style="margin-top:10px">Optimization pass profits</label><textarea id="ps" rows="3" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></textarea></details>
+<details><summary>Optional: real walk-forward on price data</summary><p class="note">Upload a price CSV (Close column, 800+ bars). It re-optimizes a moving-average crossover on each in-sample window and tests the winner on the unseen window after it. This is a demonstration engine, not your own strategy.</p><div class="row"><label class="file">Choose price CSV<input id="fp" type="file" accept=".csv,.txt,text/csv"></label><div><label for="fo">Folds</label><input id="fo" type="number" value="5" min="2" max="12"></div><div><label for="fc">Cost per position change (%)</label><input id="fc" type="number" value="0.01" step="0.01" min="0"></div></div></details>
 <p class="note" style="margin:8px 0 0">Needs a profit column per trade (profit, pnl, p&amp;l, net) or an MT5 balance-curve export with a &lt;BALANCE&gt; column. Zero-profit rows are skipped.</p>
 </div>
 
+<div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
 <div id="out">
 <div class="card"><div class="score"><div class="big" id="sc">0</div>
 <div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div></div></div></div>
@@ -40,7 +42,7 @@
 <div class="card"><h2>Your equity vs 40 reshuffled orders</h2><p class="note">Same trades, different order. A wide fan means your result depends on luck of sequence.</p><div class="scroll" id="c1"></div></div>
 <div class="card"><h2>Worst drawdown across 2,000 reshuffles</h2><div class="scroll" id="c2"></div></div>
 <div class="card"><button type="button" onclick="window.print()">Save report as PDF</button>
-<details><summary>How the score works</summary><p>Score out of 100: 20 points for how often profit survives 2,000 resamples of your trades; 15 for profit factor (full marks at 2.0); 15 for sample size (full marks at 200 trades); 20 for Deflated Sharpe confidence; 15 for how close your backtest drawdown is to the 95th-percentile reshuffled drawdown; 15 for staying profitable after removing the best 5% of winners. Up to 15 points are deducted if the second half of your history is much weaker than the first, and up to 25 if your out-of-sample trades fail.</p><p>Limits: scores are capped at 60 when there are fewer than 100 trades. It only sees your trade list, so it cannot know how many variations you tried before this one. It assumes trades are independent, which real markets often violate. The weights are a judgment call, not a proven predictor.</p><p>Deflated Sharpe follows Bailey and López de Prado and assumes your tried variants had noise-like Sharpe ratios, so enter how many variants you tested. Cost stress subtracts a share of your average trade from every trade.</p></details></div>
+<details><summary>How the score works</summary><p>Score out of 100: 20 points for how often profit survives 2,000 resamples of your trades; 15 for profit factor (full marks at 2.0); 15 for sample size (full marks at 200 trades); 20 for Deflated Sharpe confidence; 15 for how close your backtest drawdown is to the 95th-percentile reshuffled drawdown; 15 for staying profitable after removing the best 5% of winners. Up to 15 points are deducted if the second half of your history is much weaker than the first, and up to 25 if your out-of-sample trades fail.</p><p>Limits: scores are capped at 60 when there are fewer than 100 trades. It only sees your trade list, so it cannot know how many variations you tried before this one. It assumes trades are independent, which real markets often violate. The weights are a judgment call, not a proven predictor.</p><p>Deflated Sharpe follows Bailey and López de Prado and assumes your tried variants had noise-like Sharpe ratios, so enter how many variants you tested. Cost stress subtracts a share of your average trade from every trade.</p><p>Luck test: flips the sign of each trade at random 2,000 times to see how often pure chance matches your profit. Scores are capped at 70 above p=0.05 and at 55 above p=0.10. The price walk-forward uses a moving-average demo engine; for your own EA, use the MT5 tester's forward-period option and load the forward trades as out-of-sample.</p></details></div>
 <p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
 </div>
 </main>
@@ -48,6 +50,7 @@
 <script src="js/parse.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/walkforward.js"></script>
 <script src="js/ui.js"></script>
 </body>
 </html>
