@@ -1,1 +1,1 @@
-{"name":"strategy-robustness-check","version":"0.3.0","scripts":{"build":"node build.js","test":"node tests/validate.js"}}
+{"name":"strategy-robustness-check","version":"0.4.0","scripts":{"build":"node build.js","test":"node tests/validate.js && node tests/imports.js"}}

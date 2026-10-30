@@ -1,0 +1,24 @@
+const fs=require('fs');
+const js=['util','parse','brokers','stats','charts','walkforward','ui'].map(f=>fs.readFileSync(__dirname+'/../js/'+f+'.js','utf8')).join('\n');
+const stub=new Proxy(function(){},{get:(t,p)=>p==='addEventListener'?()=>{}:p==='classList'?{add(){},remove(){}}:p==='style'?{}:stub,set:()=>true,apply:()=>stub});
+global.document={querySelector:()=>stub};global.FileReader=function(){};
+eval(js+';global.smartExtract=smartExtract;');
+let bad=0;const chk=(n,c,x)=>{console.log((c?'PASS ':'FAIL ')+n+(x?'  '+x:''));if(!c)bad++};
+const P=[120,-80,45.5,-60,200,-30,75,-90,110,-40,65,-25],net=P.map(p=>p-1.5),same=(a,b)=>a.length===b.length&&a.every((x,i)=>Math.abs(x-b[i])<1e-6);
+const td=c=>'<tr>'+c.map(x=>'<td>'+x+'</td>').join('')+'</tr>';
+const h4=['Ticket','Open Time','Type','Size','Item','Price','S / L','T / P','Close Time','Price','Commission','Taxes','Swap','Profit'];
+const mt4='<html><body><table>'+td(['Closed Transactions:'])+td(h4)+P.map((p,i)=>td([1000+i,'2025.01.01','buy','0.10','eurusd','1.1','0','0','2025.01.10','1.2','-1.00','0.00','-0.50',p.toFixed(2)])).join('')+'<tr><td colspan=4>Deposit</td><td>balance</td><td>10000.00</td></tr></table></body></html>';
+chk('MT4 HTML statement',same(smartExtract(mt4).vals,net));
+const m5=['Time,Deal,Symbol,Type,Direction,Volume,Price,Order,Commission,Swap,Profit,Balance','2025.01.01,1,,balance,,,,,0,0,10000,10000'].concat(P.flatMap((p,i)=>['2025.01.02,'+(2+i*2)+',EURUSD,buy,in,0.1,1.1,1,0,0,0,10000','2025.01.03,'+(3+i*2)+',EURUSD,sell,out,0.1,1.2,1,-1.00,-0.50,'+p+',10000'])).join('\n');
+chk('MT5 deals CSV (in/out rows)',same(smartExtract(m5).vals,net));
+const gw='Name,Test User\nClient Code,1234\nRealised P&L,5000\n\nStock name,ISIN,Quantity,Buy date,Buy price,Buy value,Sell date,Sell price,Sell value,Realised P&L,Remark\n'+P.map(p=>'ABC,INE000,10,2025-01-01,100,1000,2025-01-05,110,1100,'+p+',').join('\n');
+chk('Groww-style P&L report with preamble',same(smartExtract(gw).vals,P));
+const zb='symbol,isin,trade_date,exchange,segment,series,trade_type,auction,quantity,price,trade_id,order_id,order_execution_time\nAAA,X,2025-01-01,NSE,EQ,EQ,buy,false,10,100,1,1,2025-01-01T09:30:00\nAAA,X,2025-01-02,NSE,EQ,EQ,buy,false,10,102,2,2,2025-01-02T09:30:00\nAAA,X,2025-01-03,NSE,EQ,EQ,sell,false,15,105,3,3,2025-01-03T09:30:00\nBBB,X,2025-01-03,NSE,EQ,EQ,sell,false,5,120,4,4,2025-01-03T10:30:00\nBBB,X,2025-01-04,NSE,EQ,EQ,buy,false,5,110,5,5,2025-01-04T10:30:00';
+chk('Tradebook fills, FIFO (expect 65 and 50)',same(smartExtract(zb).vals.sort((a,b)=>b-a),[65,50]),JSON.stringify(smartExtract(zb).vals));
+const tv='Trade #,Type,Signal,Date/Time,Price USDT,Contracts,Profit USDT,Cum. Profit USDT,Run-up USDT,Drawdown USDT\n'+P.map((p,i)=>(i+1)+',Exit long,L,2025-01-02,101,1,'+p+',0,0,0\n'+(i+1)+',Entry long,L,2025-01-01,100,1,'+p+',0,0,0').join('\n');
+chk('TradingView list (entry rows ignored)',same(smartExtract(tv).vals,P));
+let b=10000;const bc='<DATE>\t<BALANCE>\t<EQUITY>\t<DEPOSIT LOAD>\n'+['2025.01.01 00:00\t10000\t10000\t0'].concat(P.flatMap(p=>{b+=p;return['2025.01.02\t'+(b-p)+'\t'+(b-p+3)+'\t5','2025.01.03\t'+b+'\t'+b+'\t5']})).join('\n');
+chk('MT5 balance-curve export',same(smartExtract(bc).vals,P));
+let err=null;try{smartExtract('Ref,Outcome,Note,Price\n1,5,a,10\n2,-3,b,11\n')}catch(e){err=e}
+chk('Unknown format asks for manual column',!!(err&&err.table&&err.table.head.length===4));
+process.exit(bad?1:0);

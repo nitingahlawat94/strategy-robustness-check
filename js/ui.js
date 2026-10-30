@@ -25,13 +25,13 @@ function go(){
   const P=$('#ps').value.split('\n').map(l=>(l.match(/-?\d+(\.\d+)?/g)||[]).map(Number)).filter(a=>a.length);setTimeout(()=>render(analyse(trades,bal,ru,Math.max(1,Math.floor(+$('#nt').value||1)),P,oosT)),10);
 }
 function load(text,name){
-  try{const r=extract(text);trades=r.vals;srcName=name+' ('+r.name+')';
-    if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades in "${r.name}". Check that this is the profit column.`;return}
+  try{const r=smartExtract(text);trades=r.vals;srcName=name+' ('+r.name+')';
+    if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades (${r.name}). If this is a per-symbol summary, export the trade-level report or tradebook instead.`;return}
     go()}catch(e){$('#msg').textContent=e.message}
 }
-function readFile(f){if(!f)return;const r=new FileReader();r.onload=()=>load(r.result,f.name);r.readAsText(f)}
+function readFile(f){if(f)loadFile(f)}
 $('#f').onchange=e=>readFile(e.target.files[0]);
-$('#f2').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{oosT=extract(r.result).vals;$('#f2n').textContent=oosT.length+' out-of-sample trades loaded';if(trades.length>=10)go()}catch(x){$('#msg').textContent=x.message}};r.readAsText(f)};
+$('#f2').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{oosT=(await extractFile(f)).vals;$('#f2n').textContent=oosT.length+' out-of-sample trades loaded';if(trades.length>=10)go()}catch(x){$('#msg').textContent=x.message}};
 $('#go').onclick=go;
 $('#demo').onclick=()=>{let t='Profit\n';for(let i=0;i<160;i++)t+=(Math.random()<.52?(300+Math.random()*500):-(250+Math.random()*450)).toFixed(2)+'\n';load(t,'sample data')};
 const dz=$('#drop');
