@@ -1,4 +1,4 @@
-const CONTACT=''; // set to your email to enable the Pro waitlist button
+const CONTACT='nitingahlawat094@gmail.com'; // set to your email to enable the Pro waitlist button
 (function(){
   let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647,svg=document.getElementById('fan');
   if(svg){const W=400,H=150,N=60,P=[];let hi=-9,lo=9;

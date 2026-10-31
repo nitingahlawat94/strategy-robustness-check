@@ -4,6 +4,7 @@ function render(R){
   $('#vd').textContent=R.wr===1?'Check your file: no losing trades found':R.sc>=75?'Looks robust':R.sc>=50?'Mixed: some fragility':'Fragile: likely overfit or lucky';
   $('#src').textContent=`${R.n} trades read from ${srcName}`;
   $('#rid').textContent='Report ID ELAB-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'. The same file and settings always give the same ID and numbers.';
+  renderInsights(R);
   $('#fl').innerHTML=R.fl.map(t=>`<li>${t}</li>`).join('');
   const m=[['Net profit',fmt(R.total)],['Trades',R.n],['Win rate',pct(R.wr)],['Profit factor',isFinite(R.pf)?R.pf.toFixed(2):'∞'],['Avg win / avg loss',fmt(R.avgW)+' / '+fmt(R.avgL)],['Expectancy per trade',fmt(R.exp,2)],['Backtest max drawdown',pct(R.act.dd)],['Median shuffled drawdown',pct(R.p50)],['Worst-case (95%) drawdown',pct(R.p95)],['Longest losing streak',R.ls],['Losing streak, 95% case',R.ls95],['Chance of profit',pct(R.pProf)],['Chance of ruin',pct(R.pRuin)]];
   $('#mt').innerHTML=m.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');

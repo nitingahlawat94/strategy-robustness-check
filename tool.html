@@ -8,6 +8,7 @@
 </head>
 <body>
 <main>
+<div id="ph"><div class="logo">Edge<b>lab</b></div><div style="text-align:right"><b>Strategy robustness report</b><br><span id="phm" class="note"></span></div></div>
 <h1>Strategy robustness check</h1>
 <p class="sub">Upload your trade list and see how fragile the results are. Everything runs in your browser; your file is never uploaded.</p>
 
@@ -36,6 +37,7 @@
 <div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div><div class="note" id="rid"></div></div></div></div>
 <div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
 <div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
+<div class="card"><h2>The honest read</h2><div class="verdict" id="hrh"></div><h3>Top concerns</h3><ol class="fl" id="hrcn"></ol><h3>In your favour</h3><ul class="fl" id="hrs"></ul><div class="grid" id="hrt" style="margin-top:12px"></div><p class="note">Written by fixed rules from your own numbers. It is not an AI prediction and not advice.</p></div>
 <div class="card" id="lvc" style="display:none"><h2>Live health check</h2><p class="note">Do your live or forward trades still look like your backtest? Load them under the out-of-sample option above.</p><div class="grid" id="lv"></div><div class="verdict" id="lvv"></div></div>
 <div class="card"><h2>Safe sizing and recovery</h2><div class="grid" id="sz"></div><p class="note">A scenario simulation built from your own trades, not advice. The multiplier scales every trade's profit and loss, with the balance held fixed. It assumes future trades resemble past ones and arrive independently.</p></div>
 <div class="card"><h2>Stability: first half vs second half</h2><div class="grid" id="hv"></div></div>
@@ -53,6 +55,7 @@
 <script src="js/brokers.js"></script>
 <script src="js/trust.js"></script>
 <script src="js/health.js"></script>
+<script src="js/insight.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/walkforward.js"></script>
