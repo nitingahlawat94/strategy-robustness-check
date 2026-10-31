@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Methodology | Edgelab</title><link rel="stylesheet" href="css/site.css"></head><body>
+<header class="nav"><a class="logo" href="index.html">Edge<b>lab</b></a><nav><a href="index.html#different">Why Edgelab</a><a href="index.html#pricing">Pricing</a><a href="methodology.html">Methodology</a><a href="legal.html">Legal</a></nav><a class="btn sm" href="tool.html">Open the tool</a></header>
+<main class="prose">
+<h1>Methodology</h1>
+<p>Every number in a report comes from the trades you load. This page says exactly what is computed, and where it can mislead you.</p>
+<h2>The checks</h2>
+<ul>
+<li><b>Drawdown:</b> your trades are reshuffled 2,000 times. We report the median and 95th-percentile maximum drawdown, as a share of peak equity.</li>
+<li><b>Chance of profit and of ruin:</b> 2,000 paths are drawn by sampling your trades with replacement. Ruin means equity falling to your balance minus the ruin level you set.</li>
+<li><b>Luck test:</b> the sign of every trade is flipped at random, 2,000 times. The p-value is the share of runs that matched your profit. Above 0.05 the score is capped at 70, above 0.10 at 55.</li>
+<li><b>Deflated Sharpe:</b> the probabilistic Sharpe ratio, adjusted for skew and kurtosis and for the best Sharpe you would expect from the number of variants you tried (Bailey and L&oacute;pez de Prado). Without optimization data we assume those variants had noise-like Sharpe ratios. If you paste your pass profits, we measure their real spread.</li>
+<li><b>Cost stress:</b> a share of your average trade is subtracted from every trade, to show how much slippage and fees the edge can absorb.</li>
+<li><b>Consistency:</b> first half against second half, and five consecutive windows. This is a consistency check, not a walk-forward.</li>
+<li><b>Walk-forward:</b> load out-of-sample trades to compare them with your in-sample trades. Or upload prices to run a full walk-forward of a moving-average crossover, as a demonstration engine.</li>
+<li><b>Live health check:</b> your live trades are compared with 1,000 simulated runs of the same length drawn from your backtest. We report the percentile, and run a CUSUM drift test whose alarm threshold is calibrated so that backtest-like data trips it about 5% of the time. In our tests, healthy data was still flagged Degraded about 1 time in 8, and a strategy with a badly broken edge was flagged about 95% of the time.</li>
+<li><b>Safe sizing:</b> the largest multiplier on every trade's profit and loss for which at most 5% of 600 simulated paths hit your ruin level. It is a scenario, not advice.</li>
+</ul>
+<h2>The score</h2>
+<p>Out of 100: 20 for chance of profit, 15 for profit factor, 15 for sample size, 20 for Deflated Sharpe, 15 for drawdown realism, 15 for surviving the loss of your best 5% of winners. Points are deducted if the second half is much weaker or out-of-sample trades fail, and the score is capped for small samples and for results that pure luck could explain. The weights are a judgment call. Read the warnings before the score.</p>
+<h2>Reproducible reports</h2>
+<p>The Report ID is derived from your trades, your settings and the tool version. It also seeds the random simulations, so the same inputs always give the same ID and the same numbers. This proves a result can be reproduced. It does not prove the trades are real. Signed certificates would need a server.</p>
+<h2>Known limits</h2>
+<ul>
+<li>Trades are treated as independent. Real markets have streaks and regimes.</li>
+<li>We cannot see how many variants you tried unless you tell us.</li>
+<li>Small samples give unstable answers. Scores are capped under 100 trades.</li>
+<li>Imports are matched to common export layouts. If detection fails, you can choose the profit column.</li>
+<li>In our own tests, strategies with no edge still scored above 65 about 1 time in 13.</li>
+</ul>
+</main><footer><div class="wrap"><a href="tool.html">Tool</a> &middot; <a href="methodology.html">Methodology</a> &middot; <a href="legal.html">Legal</a><br>&copy; Edgelab. Analysis of past trades only. Not investment advice.</div></footer></body></html>

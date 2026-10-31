@@ -3,55 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Strategy Robustness Check</title>
-<link rel="stylesheet" href="css/style.css">
+<title>Edgelab: is your backtest skill or luck?</title>
+<meta name="description" content="Upload your trade history and see worst-case drawdown, chance of ruin, cost survival and an honest robustness score. Runs in your browser.">
+<meta property="og:title" content="Edgelab: is your backtest skill or luck?">
+<meta property="og:description" content="Stress-test a trading strategy in seconds. Your data never leaves your browser.">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<main>
-<h1>Strategy robustness check</h1>
-<p class="sub">Upload your trade list and see how fragile the results are. Everything runs in your browser; your file is never uploaded.</p>
+<header class="nav"><a class="logo" href="#top">Edge<b>lab</b></a>
+<nav><a href="#different">Why Edgelab</a><a href="#checks">Checks</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="methodology.html">Methodology</a></nav>
+<a class="btn sm" href="tool.html">Open the tool</a></header>
+<main id="top">
+<section class="hero"><div class="wrap two">
+<div><p class="eyebrow">Strategy validation for traders</p>
+<h1>Is your backtest skill, <em>or luck?</em></h1>
+<p class="lead">Upload your trade history. In seconds you get your worst-case drawdown, your chance of ruin, whether the profit survives real costs, and an honest 0 to 100 robustness score.</p>
+<div class="cta"><a class="btn" href="tool.html">Check my strategy, free</a><a class="btn ghost" href="#how">See how it works</a></div>
+<p class="fine">No sign-up. Your file never leaves your browser.</p></div>
+<div class="card" aria-label="Example report"><div class="rh"><span>Example report</span><i>synthetic data</i></div>
+<div class="score"><svg viewBox="0 0 120 120" role="img" aria-label="Score 78 out of 100"><circle class="ring bg" cx="60" cy="60" r="50"/><circle class="ring fg" cx="60" cy="60" r="50"/><text x="60" y="68" text-anchor="middle" font-size="28" font-weight="700" fill="var(--ink)">78</text></svg>
+<div><b>Looks robust</b><span>2,000 resamples, 300 trades</span></div></div>
+<svg id="fan" viewBox="0 0 400 150" role="img" aria-label="Equity curve against reshuffled orders"></svg>
+<div class="chips"><span><b>12.4%</b>95% drawdown</span><span><b>1.6%</b>chance of ruin</span><span><b>96%</b>deflated Sharpe</span></div></div>
+</div></section>
+<div class="strip"><div class="wrap"><span>Runs in your browser</span><span>MetaTrader 4/5</span><span>TradingView</span><span>Broker P&amp;L reports</span><span>Tradebooks</span></div></div>
 
-<div class="card">
-<div id="drop">Drop a trade export here (CSV, Excel or MetaTrader HTML), or choose a file</div>
-<div class="row">
-<label class="file">Choose file<input id="f" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label>
-<button class="ghost" id="demo" type="button">Use sample data</button>
-<div><label for="bal">Starting balance</label><input id="bal" type="number" value="100000" min="1"></div>
-<div><label for="ruin">Ruin level (drawdown %)</label><input id="ruin" type="number" value="30" min="1" max="99"></div>
-<div><label for="nt">Variants tried</label><input id="nt" type="number" value="1" min="1"></div>
-<button id="go" type="button">Run check</button>
-</div>
-<div id="msg" role="alert"></div><div id="map"></div>
-<details><summary>Optional: out-of-sample and optimization data</summary>
-<p class="note">Walk-forward check: load trades from a period your optimizer never saw. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
-<div class="row"><label class="file">Choose out-of-sample file<input id="f2" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label><span id="f2n" class="note"></span></div>
-<label for="ps" style="margin-top:10px">Optimization pass profits</label><textarea id="ps" rows="3" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></textarea></details>
-<details><summary>Optional: real walk-forward on price data</summary><p class="note">Upload a price CSV (Close column, 800+ bars). It re-optimizes a moving-average crossover on each in-sample window and tests the winner on the unseen window after it. This is a demonstration engine, not your own strategy.</p><div class="row"><label class="file">Choose price CSV<input id="fp" type="file" accept=".csv,.txt,text/csv"></label><div><label for="fo">Folds</label><input id="fo" type="number" value="5" min="2" max="12"></div><div><label for="fc">Cost per position change (%)</label><input id="fc" type="number" value="0.01" step="0.01" min="0"></div></div></details>
-<p class="note" style="margin:8px 0 0">Reads MetaTrader 4/5 statements (HTML, CSV or Excel), TradingView trade lists, broker P&amp;L reports and tradebooks. If detection fails, you can pick the profit column yourself.</p>
-</div>
+<section id="different"><div class="wrap"><div class="head"><h2>Not another one-time backtest check.</h2><p class="mute">Three things a single score cannot give you.</p></div>
+<div class="grid">
+<div class="card"><p class="num">01</p><h3>Reports anyone can reproduce</h3><p>Every report gets an ID. The same file and settings always give the same ID and numbers, so a broker, client or partner can re-run your file and see what you saw.</p></div>
+<div class="card"><p class="num">02</p><h3>A live health check</h3><p>Come back with your live trades. See where they sit against what your backtest predicted, and get a drift alarm if the edge may have broken.</p></div>
+<div class="card"><p class="num">03</p><h3>Safe size, in plain numbers</h3><p>See the size multiplier that keeps ruin risk at or below 5%, and how long a drawdown can keep you underwater.</p></div>
+</div></div></section>
 
-<div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
-<div id="out">
-<div class="card"><div class="score"><div class="big" id="sc">0</div>
-<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div></div></div></div>
-<div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
-<div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
-<div class="card"><h2>Stability: first half vs second half</h2><div class="grid" id="hv"></div></div>
-<div class="card" id="wfc" style="display:none"><h2>Walk-forward: in-sample vs out-of-sample</h2><div class="grid" id="wf"></div></div>
-<div class="card"><h2>Overfitting, costs and consistency</h2><div class="grid" id="ex"></div><div class="scroll" id="wb"></div><p class="note">Windows show profit in consecutive slices of your history. This is a consistency check, not a full walk-forward, which needs your optimizer.</p></div>
-<div class="card"><h2>Your equity vs 40 reshuffled orders</h2><p class="note">Same trades, different order. A wide fan means your result depends on luck of sequence.</p><div class="scroll" id="c1"></div></div>
-<div class="card"><h2>Worst drawdown across 2,000 reshuffles</h2><div class="scroll" id="c2"></div></div>
-<div class="card"><button type="button" onclick="window.print()">Save report as PDF</button>
-<details><summary>How the score works</summary><p>Score out of 100: 20 points for how often profit survives 2,000 resamples of your trades; 15 for profit factor (full marks at 2.0); 15 for sample size (full marks at 200 trades); 20 for Deflated Sharpe confidence; 15 for how close your backtest drawdown is to the 95th-percentile reshuffled drawdown; 15 for staying profitable after removing the best 5% of winners. Up to 15 points are deducted if the second half of your history is much weaker than the first, and up to 25 if your out-of-sample trades fail.</p><p>Limits: scores are capped at 60 when there are fewer than 100 trades. It only sees your trade list, so it cannot know how many variations you tried before this one. It assumes trades are independent, which real markets often violate. The weights are a judgment call, not a proven predictor.</p><p>Deflated Sharpe follows Bailey and López de Prado and assumes your tried variants had noise-like Sharpe ratios, so enter how many variants you tested. Cost stress subtracts a share of your average trade from every trade.</p><p>Luck test: flips the sign of each trade at random 2,000 times to see how often pure chance matches your profit. Scores are capped at 70 above p=0.05 and at 55 above p=0.10. The price walk-forward uses a moving-average demo engine; for your own EA, use the MT5 tester's forward-period option and load the forward trades as out-of-sample.</p><p>Imports are detected automatically from MetaTrader 4/5 statements, TradingView trade lists, broker P&amp;L reports with a realised P&amp;L column (such as Groww's), tradebooks with buy and sell fills (matched first-in-first-out, fees not included) and balance-curve exports. If detection fails you can choose the profit column. Live broker connections are not possible in a static page.</p></details></div>
-<p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
-</div>
+<section id="checks"><div class="wrap"><div class="head"><h2>Six ways your backtest can lie, checked.</h2><p class="mute">Most strategies look great in a backtest. These checks show how much of that survives contact with reality.</p></div>
+<div class="grid">
+<div class="card"><h3>Monte Carlo drawdown</h3><p>Reshuffles your trades 2,000 times to show the drawdown you should plan for, not the lucky one in your backtest.</p></div>
+<div class="card"><h3>Luck test</h3><p>Flips trade signs at random to measure how often pure chance matches your profit.</p></div>
+<div class="card"><h3>Deflated Sharpe</h3><p>Tell it how many variants you tried. It shows how much of your edge survives that search.</p></div>
+<div class="card"><h3>Cost stress</h3><p>Adds slippage and fees until the profit disappears, so you know your margin of safety.</p></div>
+<div class="card"><h3>Consistency</h3><p>First half against second half, and five time windows. Edges that fade show up here.</p></div>
+<div class="card"><h3>Walk-forward</h3><p>Compare in-sample and out-of-sample trades, or run a full walk-forward on price data.</p></div>
+</div></div></section>
+
+<section id="how" class="limits"><div class="wrap"><div class="head"><h2>From export to verdict in a minute.</h2></div>
+<div class="grid">
+<div><p class="num">01</p><h3>Export your trades</h3><p class="mute">From MetaTrader, TradingView, or your broker's P&amp;L report or tradebook.</p></div>
+<div><p class="num">02</p><h3>Drop the file in</h3><p class="mute">We find the profit column. If we can't, you pick it.</p></div>
+<div><p class="num">03</p><h3>Read the verdict</h3><p class="mute">Warnings first, score second. Save the report as a PDF.</p></div>
+</div></div></section>
+
+<section><div class="wrap"><div class="head"><h2>What Edgelab will not tell you.</h2></div>
+<ul class="mute" style="max-width:62ch;padding-left:20px"><li>That a strategy will make money. A high score means no red flags in the data you gave us.</li>
+<li>How many variants you tried, unless you say so. Be honest in that box.</li>
+<li>Anything about trades you left out of the file.</li></ul>
+<p style="margin-top:16px;max-width:62ch">We would rather you trust a modest, honest score than a flattering one.</p></div></section>
+
+<section id="pricing" class="limits"><div class="wrap"><div class="head"><h2>Free today. Pro when it needs servers.</h2></div>
+<div class="price">
+<div class="card"><h3>Free</h3><p class="big">$0</p><ul><li>Every check in the tool today</li><li>MetaTrader, TradingView and broker files</li><li>Save the report as PDF</li><li>No account, no upload</li></ul><a class="btn" href="tool.html">Open the tool</a></div>
+<div class="card pro"><h3>Pro</h3><p class="big">In development</p><ul><li>Saved reports and history</li><li>Shareable verified-report links</li><li>Automatic broker import</li><li>Team and provider seats</li></ul><a id="wl" class="btn ghost off" href="#pricing">Pricing announced at launch</a></div>
+</div></div></section>
+
+<section id="faq"><div class="wrap"><div class="head"><h2>Questions.</h2></div><div style="max-width:720px">
+<details><summary>Is my data uploaded?</summary><p>No. The analysis runs in your browser. Your file is read on your device and is not sent to a server.</p></details>
+<details><summary>Does a high score mean I will make money?</summary><p>No. It means the trade list you gave us shows no major red flags. Markets change, and past trades never guarantee future results. This is not investment advice.</p></details>
+<details><summary>Which files work?</summary><p>MetaTrader 4 and 5 statements, TradingView trade lists, and many broker P&amp;L reports and tradebooks. If we cannot find the profit column, you can choose it yourself.</p></details>
+<details><summary>What is a Report ID?</summary><p>A short code made from your trades, your settings and the tool version. It also seeds the simulations, so the same inputs always give the same results. It proves a result is reproducible, not that the trades are real.</p></details>
+<details><summary>Is it free?</summary><p>Yes, today. Features that need servers, such as saved reports, sharing and automatic import, will be paid.</p></details>
+<details><summary>Who built it?</summary><p>Nitin, a B.Tech student who trades. Feedback from traders decides what gets built next.</p></details>
+</div></div></section>
 </main>
-<script src="js/util.js"></script>
-<script src="js/parse.js"></script>
-<script src="js/brokers.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/walkforward.js"></script>
-<script src="js/ui.js"></script>
+<footer><div class="wrap"><a href="tool.html">Tool</a> &middot; <a href="methodology.html">Methodology</a> &middot; <a href="legal.html">Legal</a><br>&copy; Edgelab. Analysis of past trades only. Not investment advice.</div></footer>
+<script src="js/site.js"></script>
 </body>
 </html>

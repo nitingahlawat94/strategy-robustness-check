@@ -3,6 +3,7 @@ function render(R){
   $('#sc').textContent=R.sc;$('#mk').style.left=R.sc+'%';
   $('#vd').textContent=R.wr===1?'Check your file: no losing trades found':R.sc>=75?'Looks robust':R.sc>=50?'Mixed: some fragility':'Fragile: likely overfit or lucky';
   $('#src').textContent=`${R.n} trades read from ${srcName}`;
+  $('#rid').textContent='Report ID ELAB-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'. The same file and settings always give the same ID and numbers.';
   $('#fl').innerHTML=R.fl.map(t=>`<li>${t}</li>`).join('');
   const m=[['Net profit',fmt(R.total)],['Trades',R.n],['Win rate',pct(R.wr)],['Profit factor',isFinite(R.pf)?R.pf.toFixed(2):'∞'],['Avg win / avg loss',fmt(R.avgW)+' / '+fmt(R.avgL)],['Expectancy per trade',fmt(R.exp,2)],['Backtest max drawdown',pct(R.act.dd)],['Median shuffled drawdown',pct(R.p50)],['Worst-case (95%) drawdown',pct(R.p95)],['Longest losing streak',R.ls],['Losing streak, 95% case',R.ls95],['Chance of profit',pct(R.pProf)],['Chance of ruin',pct(R.pRuin)]];
   $('#mt').innerHTML=m.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
@@ -10,6 +11,11 @@ function render(R){
   $('#hv').innerHTML=hv.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   $('#wfc').style.display=R.wf?'block':'none';
   if(R.wf){const{a,b}=R.wf,eff=a.exp>0?b.exp/a.exp:0,pff=x=>isFinite(x)?x.toFixed(2):'∞';$('#wf').innerHTML=[['In-sample trades / net',a.n+' / '+fmt(a.net)],['Out-of-sample trades / net',b.n+' / '+fmt(b.net)],['In-sample profit factor',pff(a.pf)],['Out-of-sample profit factor',pff(b.pf)],['Win rate in / out',pct(a.wr)+' / '+pct(b.wr)],['Walk-forward efficiency',pct(Math.max(0,eff))]].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('')}
+  $('#lvc').style.display=R.hl?'block':'none';
+  if(R.hl){const h=R.hl;$('#lv').innerHTML=[['Live trades',h.m],['Live net profit',fmt(h.tot)],['Percentile vs backtest',(h.pc*100).toFixed(0)+'th'],['Chance of a drawdown this deep',pct(h.pd)],['Avg trade, live / backtest',fmt(h.liveMu,2)+' / '+fmt(h.mu,2)],['Drift alarm',h.alarm>0?'Trade #'+h.alarm:'None']].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+    $('#lvv').textContent=h.status+(h.status=='Healthy'?': live results are within what your backtest predicts.':h.status=='Watch'?': live results are weaker than most backtest-like outcomes. Keep monitoring.':': live results are worse than 95% of backtest-like outcomes, or the drift alarm fired. The edge may have broken.')}
+  const sz=R.sz?[['Size multiplier for 5% ruin risk',R.sz.cap?'200x or more':R.sz.k>0?R.sz.k.toFixed(2)+'x':'none found'],['Ruin risk at current size',pct(R.sz.at1)]]:[['Size multiplier','n/a: strategy lost money']];
+  $('#sz').innerHTML=sz.concat([['Longest time underwater (backtest)',R.act.uw+' trades'],['Longest time underwater (95% case)',R.uw95+' trades']]).map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   const ex=[['Deflated Sharpe confidence ('+R.tr+' variants)',pct(R.dsrv)],['Net profit, costs +10% of avg trade',fmt(R.cost[0])],['Net profit, costs +25%',fmt(R.cost[1])],['Net profit, costs +50%',fmt(R.cost[2])],['Extra cost that erases profit',pct(Math.max(0,R.be))+' of avg trade'],['Profitable time windows',R.seg.filter(x=>x>0).length+' of '+R.K],['Luck test p-value (lower is better)',R.pL.toFixed(3)]];
   $('#ex').innerHTML=ex.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   const wm=Math.max(...R.seg.map(Math.abs))||1;

@@ -63,8 +63,8 @@ details{margin-top:12px}summary{cursor:pointer;font-weight:600}details p{font-si
 </div>
 <div id="msg" role="alert"></div><div id="map"></div>
 <details><summary>Optional: out-of-sample and optimization data</summary>
-<p class="note">Walk-forward check: load trades from a period your optimizer never saw. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
-<div class="row"><label class="file">Choose out-of-sample file<input id="f2" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label><span id="f2n" class="note"></span></div>
+<p class="note">Load trades your optimizer never saw (a forward test) or your live trades. You get a walk-forward comparison and a live health check. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
+<div class="row"><label class="file">Choose live or out-of-sample file<input id="f2" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label><span id="f2n" class="note"></span></div>
 <label for="ps" style="margin-top:10px">Optimization pass profits</label><textarea id="ps" rows="3" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></textarea></details>
 <details><summary>Optional: real walk-forward on price data</summary><p class="note">Upload a price CSV (Close column, 800+ bars). It re-optimizes a moving-average crossover on each in-sample window and tests the winner on the unseen window after it. This is a demonstration engine, not your own strategy.</p><div class="row"><label class="file">Choose price CSV<input id="fp" type="file" accept=".csv,.txt,text/csv"></label><div><label for="fo">Folds</label><input id="fo" type="number" value="5" min="2" max="12"></div><div><label for="fc">Cost per position change (%)</label><input id="fc" type="number" value="0.01" step="0.01" min="0"></div></div></details>
 <p class="note" style="margin:8px 0 0">Reads MetaTrader 4/5 statements (HTML, CSV or Excel), TradingView trade lists, broker P&amp;L reports and tradebooks. If detection fails, you can pick the profit column yourself.</p>
@@ -73,9 +73,11 @@ details{margin-top:12px}summary{cursor:pointer;font-weight:600}details p{font-si
 <div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
 <div id="out">
 <div class="card"><div class="score"><div class="big" id="sc">0</div>
-<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div></div></div></div>
+<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div><div class="note" id="rid"></div></div></div></div>
 <div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
 <div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
+<div class="card" id="lvc" style="display:none"><h2>Live health check</h2><p class="note">Do your live or forward trades still look like your backtest? Load them under the out-of-sample option above.</p><div class="grid" id="lv"></div><div class="verdict" id="lvv"></div></div>
+<div class="card"><h2>Safe sizing and recovery</h2><div class="grid" id="sz"></div><p class="note">A scenario simulation built from your own trades, not advice. The multiplier scales every trade's profit and loss, with the balance held fixed. It assumes future trades resemble past ones and arrive independently.</p></div>
 <div class="card"><h2>Stability: first half vs second half</h2><div class="grid" id="hv"></div></div>
 <div class="card" id="wfc" style="display:none"><h2>Walk-forward: in-sample vs out-of-sample</h2><div class="grid" id="wf"></div></div>
 <div class="card"><h2>Overfitting, costs and consistency</h2><div class="grid" id="ex"></div><div class="scroll" id="wb"></div><p class="note">Windows show profit in consecutive slices of your history. This is a consistency check, not a full walk-forward, which needs your optimizer.</p></div>
@@ -190,10 +192,33 @@ async function loadFile(f){
     if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades (${r.name}). If this is a per-symbol summary, export the trade-level report or tradebook instead.`;return}
     go()}catch(e){$('#msg').textContent=e.message;if(e.table)askMap(e.table,f.name)}
 }
+// Reproducibility: same trades + same settings + same tool version => same Report ID and same numbers.
+const VER='0.6';
+function h53(s,seed=0){let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)}
+function reportId(...args){const s=JSON.stringify([VER,...args]),a=h53(s),b=h53(s,1013);return{seed:a%4294967296,id:(a.toString(16).padStart(14,'0').slice(0,6)+b.toString(16).padStart(14,'0').slice(0,6)).toUpperCase()}}
+function mkRng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// Live health check (does live trading still look like the backtest?) and safe-size simulation.
+function liveCheck(v,L,bal,rnd){
+  const n=v.length,m=L.length,mu=v.reduce((a,b)=>a+b,0)/n,sd=Math.sqrt(v.reduce((a,b)=>a+(b-mu)**2,0)/(n-1))||1e-9,M=1000,tot=L.reduce((a,b)=>a+b,0),ld=pathStats(L,bal).dd;
+  const k=Math.max(0,mu)/(2*sd),cus=(a,h)=>{let S=0,mx=0,al=-1;for(let i=0;i<a.length;i++){S=Math.max(0,S+(mu-a[i])/sd-k);if(S>mx)mx=S;if(h!=null&&S>h&&al<0)al=i+1}return{mx,al}};
+  let low=0,worse=0;const mxs=[];
+  for(let i=0;i<M;i++){const s=Array.from({length:m},()=>v[rnd()*n|0]);if(s.reduce((a,b)=>a+b,0)<=tot)low++;if(pathStats(s,bal).dd>=ld)worse++;mxs.push(cus(s).mx)}
+  mxs.sort((a,b)=>a-b);const hc=mxs[Math.floor(.95*M)],alarm=cus(L,hc).al;
+  const pc=low/M;
+  return{m,tot,pc,pd:worse/M,alarm,mu,liveMu:tot/m,status:pc<.05||(alarm>0&&pc<.25)?'Degraded':(pc<.25||alarm>0)?'Watch':'Healthy'};
+}
+function ruinP(v,k,bal,ruin,rnd,M){let h=0;const n=v.length,lim=bal*(1-ruin);for(let i=0;i<M;i++){let e=bal;for(let j=0;j<n;j++){e+=k*v[rnd()*n|0];if(e<=lim){h++;break}}}return h/M}
+function safeSize(v,bal,ruin,rnd){
+  const M=600,at1=ruinP(v,1,bal,ruin,rnd,M);
+  if(ruinP(v,200,bal,ruin,rnd,M)<=.05)return{k:200,cap:true,at1};
+  if(ruinP(v,.01,bal,ruin,rnd,M)>.05)return{k:0,cap:false,at1};
+  let lo=Math.log(.01),hi=Math.log(200);for(let i=0;i<12;i++){const mid=(lo+hi)/2;if(ruinP(v,Math.exp(mid),bal,ruin,rnd,M)<=.05)lo=mid;else hi=mid}
+  return{k:Math.exp(lo),cap:false,at1};
+}
 function pathStats(a,bal){
-  let e=bal,p=bal,dd=0,ls=0,cur=0;
-  for(const x of a){e+=x;if(e>p)p=e;const d=p>0?(p-e)/p:0;if(d>dd)dd=d;if(x<0){cur++;if(cur>ls)ls=cur}else cur=0}
-  return{dd,ls};
+  let e=bal,p=bal,dd=0,ls=0,cur=0,i=0,pk=0,uw=0;
+  for(const x of a){e+=x;if(e>p)p=e;i++;if(e>=p)pk=i;else if(i-pk>uw)uw=i-pk;const d=p>0?(p-e)/p:0;if(d>dd)dd=d;if(x<0){cur++;if(cur>ls)ls=cur}else cur=0}
+  return{dd,ls,uw};
 }
 const eq=(a,bal)=>{let e=bal;return[bal,...a.map(x=>e+=x)]};
 const qt=(s,p)=>s[Math.min(s.length-1,Math.floor(p*s.length))];
@@ -201,9 +226,9 @@ const erf=x=>{const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+.3275911*x);return s*(
 const Phi=x=>.5*(1+erf(x/Math.SQRT2));
 const PhiInv=p=>{if(p<.5)return-PhiInv(1-p);const t=Math.sqrt(-2*Math.log(1-p));return t-(2.515517+.802853*t+.010328*t*t)/(1+1.432788*t+.189269*t*t+.001308*t*t*t)};
 function dsr(v,N,P){const n=v.length,m=v.reduce((a,b)=>a+b,0)/n,sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/(n-1))||1e-9,z=v.map(x=>(x-m)/sd),g3=z.reduce((a,b)=>a+b**3,0)/n,g4=z.reduce((a,b)=>a+b**4,0)/n,sr=m/sd,g=.5772156649,useP=P&&P.length>=5,NN=useP?P.length:N,ts=useP?P.map(x=>x[0]/((x[1]||n)*sd)):[],tm=ts.reduce((a,b)=>a+b,0)/(ts.length||1),tsd=useP?Math.sqrt(ts.reduce((a,b)=>a+(b-tm)**2,0)/(ts.length-1)):Math.sqrt(1/(n-1)),s0=NN>1?tsd*((1-g)*PhiInv(1-1/NN)+g*PhiInv(1-1/(NN*Math.E))):0,den=Math.sqrt(Math.max(1e-9,1-g3*sr+(g4-1)/4*sr*sr));return Phi((sr-s0)*Math.sqrt(n-1)/den)}
-function lucky(v,t){const a=v.map(Math.abs),n=a.length;let g=0;for(let i=0;i<2000;i++){let s=0;for(let j=0;j<n;j++)s+=Math.random()<.5?a[j]:-a[j];if(s>=t)g++}return(g+1)/2001}
+function lucky(v,t,rnd){const a=v.map(Math.abs),n=a.length;let g=0;for(let i=0;i<2000;i++){let s=0;for(let j=0;j<n;j++)s+=rnd()<.5?a[j]:-a[j];if(s>=t)g++}return(g+1)/2001}
 function wfs(x){const w=x.filter(y=>y>0).reduce((s,y)=>s+y,0),l=-x.filter(y=>y<0).reduce((s,y)=>s+y,0);return{n:x.length,net:w-l,exp:(w-l)/x.length,pf:l>0?w/l:Infinity,wr:x.filter(y=>y>0).length/x.length}}
-function analyse(v,bal,ruinPct,tr,P,oos){if(P&&P.length>=5)tr=P.length;
+function analyse(v,bal,ruinPct,tr,P,oos){if(P&&P.length>=5)tr=P.length;const rid=reportId(v,bal,ruinPct,tr,P,oos),rnd=mkRng(rid.seed);
   const n=v.length,N=2000,ruin=ruinPct/100;
   const wins=v.filter(x=>x>0),loss=v.filter(x=>x<0);
   const sumW=wins.reduce((a,b)=>a+b,0),sumL=-loss.reduce((a,b)=>a+b,0),total=sumW-sumL;
@@ -212,14 +237,14 @@ function analyse(v,bal,ruinPct,tr,P,oos){if(P&&P.length>=5)tr=P.length;
   const act=pathStats(v,bal);
   const hs=x=>{const w=x.filter(y=>y>0).reduce((s,y)=>s+y,0),l=-x.filter(y=>y<0).reduce((s,y)=>s+y,0);return{net:w-l,pf:l>0?w/l:(w>0?Infinity:0),wr:x.filter(y=>y>0).length/(x.length||1)}};
   const hf=Math.floor(n/2),H1=hs(v.slice(0,hf)),H2=hs(v.slice(hf));
-  const aa=v.reduce((s,x)=>s+Math.abs(x),0)/n,cost=[.1,.25,.5].map(c=>total-c*aa*n),be=total/n/aa,K=n>=50?5:3,seg=Array.from({length:K},(_,i)=>v.slice(Math.floor(i*n/K),Math.floor((i+1)*n/K)).reduce((s,x)=>s+x,0)),dsrv=dsr(v,tr,P),wf=oos&&oos.length>=10?{a:wfs(v),b:wfs(oos)}:null,pL=lucky(v,total);
-  const a=v.slice(),dds=[],lss=[],paths=[];let ruined=0,prof=0;
+  const aa=v.reduce((s,x)=>s+Math.abs(x),0)/n,cost=[.1,.25,.5].map(c=>total-c*aa*n),be=total/n/aa,K=n>=50?5:3,seg=Array.from({length:K},(_,i)=>v.slice(Math.floor(i*n/K),Math.floor((i+1)*n/K)).reduce((s,x)=>s+x,0)),dsrv=dsr(v,tr,P),wf=oos&&oos.length>=10?{a:wfs(v),b:wfs(oos)}:null,pL=lucky(v,total,rnd);
+  const a=v.slice(),dds=[],lss=[],uws=[],paths=[];let ruined=0,prof=0;
   for(let i=0;i<N;i++){
-    for(let j=n-1;j>0;j--){const r=Math.random()*(j+1)|0;[a[j],a[r]]=[a[r],a[j]]}
-    const s=pathStats(a,bal);dds.push(s.dd);lss.push(s.ls);
+    for(let j=n-1;j>0;j--){const r=rnd()*(j+1)|0;[a[j],a[r]]=[a[r],a[j]]}
+    const s=pathStats(a,bal);dds.push(s.dd);lss.push(s.ls);uws.push(s.uw);
     if(i<40)paths.push(eq(a,bal));
     let e=bal,hit=false;
-    for(let j=0;j<n;j++){e+=v[Math.random()*n|0];if(e<=bal*(1-ruin))hit=true}
+    for(let j=0;j<n;j++){e+=v[rnd()*n|0];if(e<=bal*(1-ruin))hit=true}
     if(hit)ruined++;if(e>bal)prof++;
   }
   dds.sort((x,y)=>x-y);lss.sort((x,y)=>x-y);
@@ -244,7 +269,8 @@ function analyse(v,bal,ruinPct,tr,P,oos){if(P&&P.length>=5)tr=P.length;
   if(wf){const eff=wf.a.exp>0?wf.b.exp/wf.a.exp:0;if(wf.b.net<=0)fl.push('Out-of-sample trades lost money. The edge did not survive data the optimizer never saw.');else if(eff<.5)fl.push(`Out-of-sample expectancy is only ${pct(eff)} of in-sample (walk-forward efficiency). A healthy range is 50% or more.`)}
   if(!loss.length)fl.unshift('Every trade is a winner. This is almost certainly not a trade-profit column, so ignore this score and check the column name shown above.');
   if(!fl.length)fl.push('No major warning signs found. That does not guarantee future results.');
-  return{n,total,pf,wr:wins.length/n,avgW:wins.length?sumW/wins.length:0,avgL:loss.length?sumL/loss.length:0,exp:total/n,act,p50:qt(dds,.5),p95,ls:act.ls,ls95:qt(lss,.95),pProf,pRuin,sc:loss.length?Math.min(n<100?60:100,pL>.1?55:pL>.05?70:100,Math.max(0,sc)):0,fl,paths,actEq:eq(v,bal),dds,bal,H1,H2,dsrv,cost,be,seg,K,tr,wf,pL};
+  const hl=oos&&oos.length>=10?liveCheck(v,oos,bal,rnd):null,sz=total>0?safeSize(v,bal,ruin,rnd):null;
+  return{n,total,pf,wr:wins.length/n,avgW:wins.length?sumW/wins.length:0,avgL:loss.length?sumL/loss.length:0,exp:total/n,act,p50:qt(dds,.5),p95,ls:act.ls,ls95:qt(lss,.95),pProf,pRuin,sc:loss.length?Math.min(n<100?60:100,pL>.1?55:pL>.05?70:100,Math.max(0,sc)):0,fl,paths,actEq:eq(v,bal),dds,bal,H1,H2,dsrv,cost,be,seg,K,tr,wf,pL,hl,sz,rid:rid.id,uw95:qt(uws.sort((x,y)=>x-y),.95)};
 }
 function fan(R){
   const W=640,H=260,P=34,all=[R.actEq,...R.paths];
@@ -298,6 +324,7 @@ function render(R){
   $('#sc').textContent=R.sc;$('#mk').style.left=R.sc+'%';
   $('#vd').textContent=R.wr===1?'Check your file: no losing trades found':R.sc>=75?'Looks robust':R.sc>=50?'Mixed: some fragility':'Fragile: likely overfit or lucky';
   $('#src').textContent=`${R.n} trades read from ${srcName}`;
+  $('#rid').textContent='Report ID ELAB-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'. The same file and settings always give the same ID and numbers.';
   $('#fl').innerHTML=R.fl.map(t=>`<li>${t}</li>`).join('');
   const m=[['Net profit',fmt(R.total)],['Trades',R.n],['Win rate',pct(R.wr)],['Profit factor',isFinite(R.pf)?R.pf.toFixed(2):'∞'],['Avg win / avg loss',fmt(R.avgW)+' / '+fmt(R.avgL)],['Expectancy per trade',fmt(R.exp,2)],['Backtest max drawdown',pct(R.act.dd)],['Median shuffled drawdown',pct(R.p50)],['Worst-case (95%) drawdown',pct(R.p95)],['Longest losing streak',R.ls],['Losing streak, 95% case',R.ls95],['Chance of profit',pct(R.pProf)],['Chance of ruin',pct(R.pRuin)]];
   $('#mt').innerHTML=m.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
@@ -305,6 +332,11 @@ function render(R){
   $('#hv').innerHTML=hv.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   $('#wfc').style.display=R.wf?'block':'none';
   if(R.wf){const{a,b}=R.wf,eff=a.exp>0?b.exp/a.exp:0,pff=x=>isFinite(x)?x.toFixed(2):'∞';$('#wf').innerHTML=[['In-sample trades / net',a.n+' / '+fmt(a.net)],['Out-of-sample trades / net',b.n+' / '+fmt(b.net)],['In-sample profit factor',pff(a.pf)],['Out-of-sample profit factor',pff(b.pf)],['Win rate in / out',pct(a.wr)+' / '+pct(b.wr)],['Walk-forward efficiency',pct(Math.max(0,eff))]].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('')}
+  $('#lvc').style.display=R.hl?'block':'none';
+  if(R.hl){const h=R.hl;$('#lv').innerHTML=[['Live trades',h.m],['Live net profit',fmt(h.tot)],['Percentile vs backtest',(h.pc*100).toFixed(0)+'th'],['Chance of a drawdown this deep',pct(h.pd)],['Avg trade, live / backtest',fmt(h.liveMu,2)+' / '+fmt(h.mu,2)],['Drift alarm',h.alarm>0?'Trade #'+h.alarm:'None']].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+    $('#lvv').textContent=h.status+(h.status=='Healthy'?': live results are within what your backtest predicts.':h.status=='Watch'?': live results are weaker than most backtest-like outcomes. Keep monitoring.':': live results are worse than 95% of backtest-like outcomes, or the drift alarm fired. The edge may have broken.')}
+  const sz=R.sz?[['Size multiplier for 5% ruin risk',R.sz.cap?'200x or more':R.sz.k>0?R.sz.k.toFixed(2)+'x':'none found'],['Ruin risk at current size',pct(R.sz.at1)]]:[['Size multiplier','n/a: strategy lost money']];
+  $('#sz').innerHTML=sz.concat([['Longest time underwater (backtest)',R.act.uw+' trades'],['Longest time underwater (95% case)',R.uw95+' trades']]).map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   const ex=[['Deflated Sharpe confidence ('+R.tr+' variants)',pct(R.dsrv)],['Net profit, costs +10% of avg trade',fmt(R.cost[0])],['Net profit, costs +25%',fmt(R.cost[1])],['Net profit, costs +50%',fmt(R.cost[2])],['Extra cost that erases profit',pct(Math.max(0,R.be))+' of avg trade'],['Profitable time windows',R.seg.filter(x=>x>0).length+' of '+R.K],['Luck test p-value (lower is better)',R.pL.toFixed(3)]];
   $('#ex').innerHTML=ex.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
   const wm=Math.max(...R.seg.map(Math.abs))||1;
