@@ -11,14 +11,14 @@
 </head>
 <body>
 <header class="nav"><a class="logo" href="#top">Edge<b>lab</b></a>
-<nav><a href="#different">Why Edgelab</a><a href="#checks">Checks</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#founder">Founder</a><a href="#faq">FAQ</a><a href="methodology.html">Methodology</a></nav>
+<nav><a href="#different">Why Edgelab</a><a href="#checks">Checks</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#verify">Verify</a><a href="#founder">Founder</a><a href="#faq">FAQ</a><a href="methodology.html">Methodology</a></nav>
 <a class="btn sm" href="tool.html">Open the tool</a></header>
 <main id="top">
 <section class="hero"><div class="wrap two">
 <div><p class="eyebrow">Strategy validation for traders</p>
 <h1>Is your backtest skill, <em>or luck?</em></h1>
 <p class="lead">Upload your trade history. In seconds you get your worst-case drawdown, your chance of ruin, whether the profit survives real costs, and an honest 0 to 100 robustness score.</p>
-<div class="cta"><a class="btn" href="tool.html">Check my strategy, free</a><a class="btn ghost" href="#how">See how it works</a></div>
+<div class="cta"><a class="btn" href="tool.html">Check my strategy, free</a><a class="btn ghost" href="tool.html#sample">See a sample report</a></div>
 <p class="fine">No sign-up. Your file never leaves your browser.</p></div>
 <div class="card" aria-label="Example report"><div class="rh"><span>Example report</span><i>synthetic data</i></div>
 <div class="score"><svg viewBox="0 0 120 120" role="img" aria-label="Score 78 out of 100"><circle class="ring bg" cx="60" cy="60" r="50"/><circle class="ring fg" cx="60" cy="60" r="50"/><text x="60" y="68" text-anchor="middle" font-size="28" font-weight="700" fill="var(--ink)">78</text></svg>
@@ -61,15 +61,27 @@
 <section id="pricing" class="limits"><div class="wrap"><div class="head"><h2>Free today. Pro when it needs servers.</h2></div>
 <div class="price">
 <div class="card"><h3>Free</h3><p class="big">$0</p><ul><li>Every check in the tool today</li><li>MetaTrader, TradingView and broker files</li><li>Save the report as PDF</li><li>No account, no upload</li></ul><a class="btn" href="tool.html">Open the tool</a></div>
-<div class="card pro"><h3>Pro</h3><p class="big">In development</p><ul><li>Saved reports and history</li><li>Shareable verified-report links</li><li>Automatic broker import</li><li>Team and provider seats</li></ul><a id="wl" class="btn ghost off" href="#pricing">Pricing announced at launch</a></div>
+<div class="card pro"><h3>Pro</h3><p class="big">In development</p><ul><li>Saved reports and history</li><li>Signed certificates anyone can verify</li><li>Shareable verified-report links</li><li>Automatic broker import</li><li>Team and provider seats</li></ul><a id="wl" class="btn ghost off" href="#pricing">Pricing announced at launch</a></div>
 </div></div></section>
 
-<section id="founder" class="limits"><div class="wrap founder"><div class="avatar" aria-hidden="true">NG</div>
-<div><p class="eyebrow">Founder's note</p>
-<blockquote>Backtests flatter everyone. I'm building the tool that makes it hard to fool yourself with one.</blockquote>
-<p class="mute">I'm Nitin Gahlawat, a B.Tech student who trades and builds trading robots. Edgelab starts from one simple idea: before a strategy touches real money, it should have to answer hard questions, and the answers should be honest, reproducible and yours alone.</p>
+<section id="verify"><div class="wrap"><div class="head"><h2>Before you copy a trader, verify the report.</h2><p class="mute">Anyone can post a screenshot of a score. Edgelab certificates are signed, so a real one verifies here and an edited or AI-made one does not. A certificate shows a report was reproduced by Edgelab from a trade file. It does not prove the trades are real unless the level says broker-verified.</p></div>
+<form class="vform" id="vf"><input name="q" placeholder="ELAB-XXXX-XXXX-XXXX" aria-label="Report ID" required><button class="btn" type="submit">Verify a Report ID</button></form><p class="fine" style="margin-top:10px">Try the sample: <a href="verify.html#ELAB-0000-0000-0000">ELAB-0000-0000-0000</a></p></div></section>
+
+<section id="founder" class="limits"><div class="wrap founder"><img class="avatar" src="img/nitin.jpg" alt="Nitin Gahlawat, founder of Edgelab" width="160" height="160">
+<div><p class="eyebrow">The founder</p>
+<h2>Hope is not a risk model.</h2>
+<p class="mute">I'm Nitin Gahlawat. I trade, I build trading robots, and I'm studying engineering. Edgelab is built on one belief: a strategy must earn your trust with evidence before it earns a rupee of your capital.</p>
+<blockquote class="pull">&ldquo;Anyone can find a backtest that looks like genius. The few who last are the ones who check it harder than anyone else would.&rdquo;<cite class="sig">Nitin Gahlawat</cite></blockquote>
 <ul class="principles"><li><b>Honest over flattering.</b> A modest true score beats a pretty fake one.</li><li><b>Ship every week.</b> Traders decide what gets built next.</li><li><b>Your data stays yours.</b> Everything runs on your device.</li><li><b>Every claim has a test.</b> The code and its tests are public on GitHub.</li></ul>
 <div class="cta"><a class="btn" href="mailto:nitingahlawat094@gmail.com">Email me</a><a class="btn ghost" href="https://www.linkedin.com/in/nitingahlawat94" rel="noopener">LinkedIn</a><a class="btn ghost" href="https://github.com/nitingahlawat94" rel="noopener">GitHub</a></div></div></div></section>
+
+<section id="reviews"><div class="wrap"><div class="head"><h2>What traders say.</h2><p class="mute">Anonymous reviews from people who ran their own strategies. The founder checks each one for spam and never edits the text.</p></div>
+<div class="grid" id="rv"></div><p id="rvn" class="mute">No reviews yet. Be the first to try the tool and tell us honestly what you think.</p>
+<form id="rf" class="card rform"><h3>Leave an anonymous review</h3>
+<label>Rating<select name="rating"><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label>
+<label>Your review<textarea name="review" maxlength="400" rows="3" required></textarea></label>
+<label>Display name (optional)<input name="name" maxlength="30" placeholder="Anonymous trader"></label>
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><button class="btn" type="submit" id="rfb">Submit review</button><p class="fine" id="rfm"></p></form></div></section>
 
 <section id="faq"><div class="wrap"><div class="head"><h2>Questions.</h2></div><div style="max-width:720px">
 <details><summary>Is my data uploaded?</summary><p>No. The analysis runs in your browser. Your file is read on your device and is not sent to a server.</p></details>
@@ -77,10 +89,10 @@
 <details><summary>Which files work?</summary><p>MetaTrader 4 and 5 statements, TradingView trade lists, and many broker P&amp;L reports and tradebooks. If we cannot find the profit column, you can choose it yourself.</p></details>
 <details><summary>What is a Report ID?</summary><p>A short code made from your trades, your settings and the tool version. It also seeds the simulations, so the same inputs always give the same results. It proves a result is reproducible, not that the trades are real.</p></details>
 <details><summary>Is it free?</summary><p>Yes, today. Features that need servers, such as saved reports, sharing and automatic import, will be paid.</p></details>
-<details><summary>Who built it?</summary><p>Nitin, a B.Tech student who trades. Feedback from traders decides what gets built next.</p></details>
+<details><summary>Who built it?</summary><p><b>Nitin Gahlawat, Founder &amp; CEO.</b> A trader and engineer building tools that tell the truth about strategies. Feedback from traders decides what gets built next.</p></details>
 </div></div></section>
 </main>
-<footer><div class="wrap"><a href="tool.html">Tool</a> &middot; <a href="methodology.html">Methodology</a> &middot; <a href="legal.html">Legal</a><br>&copy; Edgelab. Analysis of past trades only. Not investment advice.</div></footer>
+<footer><div class="wrap"><a href="tool.html">Tool</a> &middot; <a href="methodology.html">Methodology</a> &middot; <a href="legal.html">Legal</a><br><b class="by">Built by Nitin Gahlawat, Founder &amp; CEO.</b> &copy; Edgelab. Analysis of past trades only. Not investment advice.</div></footer>
 <script src="js/site.js"></script>
 </body>
 </html>

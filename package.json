@@ -1,8 +1,8 @@
 {
  "name": "strategy-robustness-check",
- "version": "0.6.0",
+ "version": "0.7.0",
  "scripts": {
   "build": "node build.js && node build-site.js",
-  "test": "node tests/validate.js && node tests/imports.js && node tests/features.js"
+  "test": "node tests/validate.js && node tests/imports.js && node tests/features.js && node tests/cert.js"
  }
 }

@@ -42,3 +42,15 @@ details{margin-top:12px}summary{cursor:pointer;font-weight:600}details p{font-si
 #ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #2457d6;padding-bottom:10px;margin-bottom:16px}#ph .logo{font:700 26px Georgia,serif}#ph .logo b{color:#2457d6}
 h1,.sub,details,.file{display:none}main{max-width:none;padding:0}h2{break-after:avoid}
 #out::after{content:"Edgelab analyses past trades you provide. It is not investment advice and does not predict future results.";display:block;font-size:11px;color:#4a5568;margin-top:14px;border-top:1px solid #cbd2dc;padding-top:8px}}
+#info{margin-top:8px;font-size:14px;color:var(--good)}
+#wait{position:fixed;inset:0;z-index:99;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--bg) 45%,transparent);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
+#wait.on{opacity:1;visibility:visible}.wbox{width:min(440px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}
+#wsvg{min-width:0;width:100%;height:80px;margin:6px 0 14px}#wcur{fill:none;stroke:var(--acc);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.wbar{height:8px;border-radius:6px;background:var(--line);overflow:hidden}.wbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--good))}
+#wtx{font-weight:600;min-height:26px}.wpct{font:700 34px Georgia,serif;margin-top:10px}body.waiting{overflow:hidden}
+#out.reveal>*{animation:rise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#out.reveal>*{animation:none}#wait{transition:none}}
+.hrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:10px 0;font-size:14px}
+.hrow a{padding:7px 12px;border:1px solid var(--acc);border-radius:6px;color:var(--acc);text-decoration:none;font-weight:600}
+@media print{#wait,#histc{display:none}}

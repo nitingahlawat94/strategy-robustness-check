@@ -47,12 +47,12 @@ async function extractFile(f){
 function askMap(t,name){
   const m=$('#map');m.textContent='';const l=document.createElement('label');l.textContent='Which column holds profit per trade?';const s=document.createElement('select');
   t.head.forEach((h,i)=>s.add(new Option(h||'column '+(i+1),i)));const b=document.createElement('button');b.type='button';b.textContent='Use this column';
-  b.onclick=()=>{const i=+s.value,v=t.body.map(r=>num(r[i],t.d)).filter(x=>!isNaN(x)&&x!==0);m.textContent='';if(v.length<10){$('#msg').textContent='Only '+v.length+' usable values in that column.';return}trades=v;srcName=name+' ('+t.head[i]+', chosen by you)';go()};
+  b.onclick=()=>{const i=+s.value,v=t.body.map(r=>num(r[i],t.d)).filter(x=>!isNaN(x)&&x!==0);m.textContent='';if(v.length<10){$('#msg').textContent='Only '+v.length+' usable values in that column.';return}trades=v;srcName=name+' ('+t.head[i]+', chosen by you)';ready()};
   m.append(l,' ',s,' ',b);
 }
 async function loadFile(f){
   $('#msg').textContent='';$('#map').textContent='';
   try{const r=await extractFile(f);trades=r.vals;srcName=f.name+' ('+r.name+')';
     if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades (${r.name}). If this is a per-symbol summary, export the trade-level report or tradebook instead.`;return}
-    go()}catch(e){$('#msg').textContent=e.message;if(e.table)askMap(e.table,f.name)}
+    ready()}catch(e){$('#msg').textContent=e.message;if(e.table)askMap(e.table,f.name)}
 }

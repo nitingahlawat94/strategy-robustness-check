@@ -20,9 +20,9 @@
 <div><label for="bal">Starting balance</label><input id="bal" type="number" value="100000" min="1"></div>
 <div><label for="ruin">Ruin level (drawdown %)</label><input id="ruin" type="number" value="30" min="1" max="99"></div>
 <div><label for="nt">Variants tried</label><input id="nt" type="number" value="1" min="1"></div>
-<button id="go" type="button">Run check</button>
+<button id="go" type="button">Start analysis</button>
 </div>
-<div id="msg" role="alert"></div><div id="map"></div>
+<div id="msg" role="alert"></div><div id="map"></div><div id="info" role="status"></div>
 <details><summary>Optional: out-of-sample and optimization data</summary>
 <p class="note">Load trades your optimizer never saw (a forward test) or your live trades. You get a walk-forward comparison and a live health check. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
 <div class="row"><label class="file">Choose live or out-of-sample file<input id="f2" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label><span id="f2n" class="note"></span></div>
@@ -31,6 +31,7 @@
 <p class="note" style="margin:8px 0 0">Reads MetaTrader 4/5 statements (HTML, CSV or Excel), TradingView trade lists, broker P&amp;L reports and tradebooks. If detection fails, you can pick the profit column yourself.</p>
 </div>
 
+<div class="card" id="histc" style="display:none"><h2>Your reports and certificates</h2><p class="note">Saved in this browser only. Request a signed certificate for any report you want to prove to others. The founder reproduces your report from your file before signing.</p><div id="hist"></div></div>
 <div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
 <div id="out">
 <div class="card"><div class="score"><div class="big" id="sc">0</div>
@@ -50,6 +51,7 @@
 <p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
 </div>
 </main>
+<div id="wait" role="status" aria-live="polite"><div class="wbox"><div id="wtx">Preparing</div><svg id="wsvg" viewBox="0 0 300 80" aria-hidden="true"><polyline id="wcur" points="0,40 300,40"/></svg><div class="wbar"><i id="wfill"></i></div><div class="wpct" id="wp">0%</div></div></div>
 <script src="js/util.js"></script>
 <script src="js/parse.js"></script>
 <script src="js/brokers.js"></script>
@@ -59,6 +61,7 @@
 <script src="js/stats.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/walkforward.js"></script>
+<script src="js/flow.js"></script>
 <script src="js/ui.js"></script>
 </body>
 </html>

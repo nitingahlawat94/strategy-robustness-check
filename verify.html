@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Verify a certificate | Edgelab</title><link rel="stylesheet" href="css/site.css"></head><body>
+<header class="nav"><a class="logo" href="index.html">Edge<b>lab</b></a><nav><a href="index.html#different">Why Edgelab</a><a href="index.html#pricing">Pricing</a><a href="methodology.html">Methodology</a><a href="legal.html">Legal</a></nav><a class="btn sm" href="tool.html">Open the tool</a></header>
+<main class="prose"><h1>Verify a certificate</h1>
+<p>Enter a Report ID. If Edgelab issued a signed certificate for it, you will see the certificate below. If not, treat any claimed result with that ID as unproven.</p>
+<form class="vform" id="vf"><input id="vid" placeholder="ELAB-XXXX-XXXX-XXXX" aria-label="Report ID" autocomplete="off" required><button class="btn" type="submit">Verify</button></form>
+<div id="vr" role="status"></div>
+<h2>What a certificate proves, and what it does not</h2>
+<ul><li>It proves the report was reproduced by Edgelab and has not been edited or made up in an AI tool. The signature breaks if any number is changed.</li><li>It does not prove the trades are real, unless the level line says broker-verified. Today, certificates are issued from a trade file the holder supplies.</li><li>Past results never guarantee future results. This is not investment advice.</li></ul>
+<p>Try the sample: <a href="#ELAB-0000-0000-0000">ELAB-0000-0000-0000</a></p></main>
+<footer><div class="wrap"><a href="tool.html">Tool</a> &middot; <a href="methodology.html">Methodology</a> &middot; <a href="legal.html">Legal</a><br><b class="by">Built by Nitin Gahlawat, Founder &amp; CEO.</b> &copy; Edgelab. Not investment advice.</div></footer>
+<script src="js/cert.js"></script><script src="js/verify.js"></script></body></html>

@@ -1,0 +1,17 @@
+{
+ "certificates": [
+  {
+   "data": {
+    "rid": "ELAB-0000-0000-0000",
+    "score": 78,
+    "headline": "Promising, but not proven",
+    "date": "2026-01-01",
+    "n": 300,
+    "level": "SAMPLE ONLY. Signed with a test key to show how certificates look.",
+    "ver": "0.6",
+    "holder": "SAMPLE (demo certificate)"
+   },
+   "sig": "P41XvT25HuvARvg7uT6hwIu8nwOw89JKKIn0_Ch7oC2eY5AyfJOlzdPjXQTYD4yd6cmraHv4GnMo_E-4mc9rQw"
+  }
+ ]
+}

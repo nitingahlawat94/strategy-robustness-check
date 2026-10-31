@@ -1,5 +1,5 @@
 const fs=require('fs');
-const js=['util','parse','brokers','trust','health','insight','stats','charts','walkforward','ui'].map(f=>fs.readFileSync(__dirname+'/../js/'+f+'.js','utf8')).join('\n');
+const js=['util','parse','brokers','trust','health','insight','stats','charts','walkforward','flow','ui'].map(f=>fs.readFileSync(__dirname+'/../js/'+f+'.js','utf8')).join('\n');
 const stub=new Proxy(function(){},{get:(t,p)=>p==='addEventListener'?()=>{}:p==='classList'?{add(){},remove(){}}:p==='style'?{}:stub,set:()=>true,apply:()=>stub});
 global.document={querySelector:()=>stub};global.FileReader=function(){};
 eval(js+';global.smartExtract=smartExtract;');
