@@ -1,13 +1,13 @@
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const norm=s=>{s=(s||'').toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/^ELAB/,'');return s.length===12?'ELAB-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8):null};
+const norm=s=>{s=(s||'').toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/^RBLY/,'');return s.length===12?'RBLY-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8):null};
 const say=(k,t)=>{const d=document.createElement('div');d.className='vmsg '+k;d.textContent=t;$('#vr').textContent='';$('#vr').append(d)};
-function show(d){$('#vr').innerHTML=`<div class="cert"><div class="seal">&#10003;</div><p class="eyebrow">Certificate of robustness verification</p><div class="logo">Edge<b>lab</b></div>
+function show(d){$('#vr').innerHTML=`<div class="cert"><div class="seal">&#10003;</div><p class="eyebrow">Certificate of robustness verification</p><div class="logo">Robust<b>ly</b></div>
 <div class="cscore">${esc(d.score)}<small>/100</small></div><h2>${esc(d.headline)}</h2>${d.holder?`<p>Issued to <b>${esc(d.holder)}</b></p>`:''}
 <dl><dt>Report ID</dt><dd>${esc(d.rid)}</dd><dt>Trades analysed</dt><dd>${esc(d.n)}</dd><dt>Issued on</dt><dd>${esc(d.date)}</dd><dt>Tool version</dt><dd>${esc(d.ver)}</dd></dl>
-<p class="level">${esc(d.level)}</p><p class="csig"><span class="sig">Nitin Gahlawat</span><br>Founder &amp; CEO, Edgelab</p>
-<p class="vok">Signature valid. This certificate was issued by Edgelab and has not been edited.</p></div><p><button class="btn ghost" type="button" onclick="window.print()">Print or save as PDF</button></p>`}
+<p class="level">${esc(d.level)}</p><p class="csig"><span class="sig">Nitin Gahlawat</span><br>Founder &amp; CEO, Robustly</p>
+<p class="vok">Signature valid. This certificate was issued by Robustly and has not been edited.</p></div><p><button class="btn ghost" type="button" onclick="window.print()">Print or save as PDF</button></p>`}
 async function check(raw){
-  const id=norm(raw);if(!id)return say('bad','That does not look like a Report ID. It should look like ELAB-1ADA-7215-7A36.');
+  const id=norm(raw);if(!id)return say('bad','That does not look like a Report ID. It should look like RBLY-1ADA-7215-7A36.');
   let reg;try{reg=await(await fetch('data/registry.json',{cache:'no-store'})).json()}catch(e){return say('bad','Could not load the certificate registry. Check your connection.')}
   const c=reg.certificates.find(x=>x.data.rid===id);
   if(!c)return say('no','No certificate has been issued for '+id+'. A Report ID alone proves nothing, because anyone can generate one by running any file through the tool. If someone claims a result with this ID, ask them for the certificate.');

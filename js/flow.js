@@ -18,10 +18,12 @@ function runFlow(compute,renderFn,P){
     renderFn(R);const o=$('#out');o.classList.remove('reveal');[...o.children].forEach((c,i)=>c.style.setProperty('--i',i));void o.offsetWidth;o.classList.add('reveal');saveHist(R)};
   requestAnimationFrame(tick);
 }
-const fid=r=>'ELAB-'+r.slice(0,4)+'-'+r.slice(4,8)+'-'+r.slice(8);
-function saveHist(R){try{const k='edgelab.history',a=JSON.parse(localStorage.getItem(k)||'[]').filter(x=>x.rid!==R.rid);a.unshift({rid:R.rid,sc:R.sc,n:R.n,f:srcName,d:new Date().toISOString().slice(0,10)});localStorage.setItem(k,JSON.stringify(a.slice(0,30)))}catch(e){}renderHist()}
-function renderHist(){let a=[];try{a=JSON.parse(localStorage.getItem('edgelab.history')||'[]')}catch(e){}
+const fid=r=>'RBLY-'+r.slice(0,4)+'-'+r.slice(4,8)+'-'+r.slice(8);
+function saveHist(R){try{const k='robustly.history',a=JSON.parse(localStorage.getItem(k)||'[]').filter(x=>x.rid!==R.rid);a.unshift({rid:R.rid,sc:R.sc,n:R.n,f:srcName,d:new Date().toISOString().slice(0,10)});localStorage.setItem(k,JSON.stringify(a.slice(0,30)))}catch(e){}renderHist()}
+function renderHist(){let a=[];try{a=JSON.parse(localStorage.getItem('robustly.history')||'[]')}catch(e){}
   $('#histc').style.display=a.length?'block':'none';const h=$('#hist');h.textContent='';
   a.forEach(x=>{const row=document.createElement('div'),s=document.createElement('span'),b=document.createElement('a');row.className='hrow';s.textContent=`${fid(x.rid)}  |  score ${x.sc}  |  ${x.n} trades  |  ${x.d}  |  ${x.f}`;
-    b.textContent='Request certificate';b.href='mailto:nitingahlawat094@gmail.com?subject='+encodeURIComponent('Certificate request '+fid(x.rid))+'&body='+encodeURIComponent(`Hi Nitin,\n\nPlease issue an Edgelab certificate for this report.\nReport ID: ${fid(x.rid)}\nScore: ${x.sc}\nTrades: ${x.n}\nName to print on the certificate: \n\nI will attach my trade file so you can reproduce the report.`);row.append(s,b);h.append(row)})}
+    b.textContent='Request certificate';b.href=mailHref('Certificate request '+fid(x.rid),`Hello Robustly team,\n\nPlease issue a Robustly certificate for this report.\nReport ID: ${fid(x.rid)}\nScore: ${x.sc}\nTrades: ${x.n}\nName to print on the certificate: \n\nI will attach my trade file so you can reproduce the report.`);b.target='_blank';b.rel='noopener';row.append(s,b);h.append(row)})}
 renderHist();
+
+$('#hclr').onclick=()=>{try{localStorage.removeItem('robustly.history')}catch(e){}renderHist()};

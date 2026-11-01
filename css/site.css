@@ -54,3 +54,9 @@ blockquote{margin:0 0 18px;font:italic clamp(24px,3.4vw,36px)/1.25 "Iowan Old St
 .cert dl{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;text-align:left;max-width:380px;margin:16px auto;color:var(--mute)}.cert dd{margin:0;color:var(--ink);font-family:ui-monospace,Menlo,monospace}.cert .level{font-size:14px}
 .csig .sig{font:normal 36px/1.2 "Snell Roundhand","Apple Chancery","Segoe Script","Brush Script MT","Lucida Handwriting",cursive;color:var(--acct)}.vok{color:var(--good)!important;font-weight:600}
 @media print{.nav,footer,.vform,.btn,.prose>p,.prose>h2,.prose>ul,.prose>h1{display:none}.cert{box-shadow:none}}
+.lead2{font-size:20px;color:var(--ink)!important}
+.bio{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:start;margin:12px 0}.bio h3{margin:0}.bio .eyebrow{margin:4px 0 12px}
+@media(max-width:700px){.bio{grid-template-columns:1fr}}
+.prose a.btn{color:#1a1203}.prose a.btn.ghost{color:var(--ink)}.prose .cta{margin-top:12px}
+@media print{#sh,#sf{display:none}}
+.cert .logo{color:#4f7df0;font:700 28px Georgia,serif}.cert .logo b{color:var(--acc)}

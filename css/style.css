@@ -39,9 +39,9 @@ details{margin-top:12px}summary{cursor:pointer;font-weight:600}details p{font-si
 @media print{.card:has(#drop),.sub,button{display:none}body{background:#fff;color:#000}.card{break-inside:avoid}}
 #ph{display:none}
 @media print{:root{--bg:#fff;--card:#fff;--ink:#14213d;--mute:#4a5568;--line:#cbd2dc;--acc:#2457d6;--good:#1e8e5a;--bad:#c2392b;--warn:#b7791f;--accsoft:#eef2fb}
-#ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #2457d6;padding-bottom:10px;margin-bottom:16px}#ph .logo{font:700 26px Georgia,serif}#ph .logo b{color:#2457d6}
+#ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #2457d6;padding-bottom:10px;margin-bottom:16px}#ph .logo{font:700 26px Georgia,serif;color:#1d4ed8}#ph .logo b{color:#b97800}
 h1,.sub,details,.file{display:none}main{max-width:none;padding:0}h2{break-after:avoid}
-#out::after{content:"Edgelab analyses past trades you provide. It is not investment advice and does not predict future results.";display:block;font-size:11px;color:#4a5568;margin-top:14px;border-top:1px solid #cbd2dc;padding-top:8px}}
+#out::after{content:"Robustly analyses past trades you provide. It is not investment advice and does not predict future results.";display:block;font-size:11px;color:#4a5568;margin-top:14px;border-top:1px solid #cbd2dc;padding-top:8px}}
 #info{margin-top:8px;font-size:14px;color:var(--good)}
 #wait{position:fixed;inset:0;z-index:99;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--bg) 45%,transparent);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
 #wait.on{opacity:1;visibility:visible}.wbox{width:min(440px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}

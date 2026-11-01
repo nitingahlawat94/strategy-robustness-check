@@ -34,5 +34,5 @@ function renderInsights(R){
   const I=insights(R,trades,+$('#bal').value||1e5),li=(a,e)=>a.length?a.map(t=>`<li>${t}</li>`).join(''):`<li>${e}</li>`;
   $('#hrh').textContent=I.headline;$('#hrcn').innerHTML=li(I.concerns.slice(0,3),'No major concerns found in this data.');$('#hrs').innerHTML=li(I.strengths.slice(0,3),'Nothing stands out yet.');
   $('#hrt').innerHTML=I.tiles.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
-  $('#phm').textContent='Report ID ELAB-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'  |  '+new Date().toLocaleDateString()+'  |  '+srcName;
+  $('#phm').textContent='Report ID RBLY-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'  |  '+new Date().toLocaleDateString()+'  |  '+srcName;
 }

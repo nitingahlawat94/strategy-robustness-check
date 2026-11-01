@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Strategy Robustness Check</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="img/favicon.png"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><link rel="stylesheet" href="css/shell.css"><link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<header id="sh"></header>
 <main>
-<div id="ph"><div class="logo">Edge<b>lab</b></div><div style="text-align:right"><b>Strategy robustness report</b><br><span id="phm" class="note"></span></div></div>
+<div id="ph"><div class="logo">Robust<b>ly</b></div><div style="text-align:right"><b>Strategy robustness report</b><br><span id="phm" class="note"></span></div></div>
 <h1>Strategy robustness check</h1>
 <p class="sub">Upload your trade list and see how fragile the results are. Everything runs in your browser; your file is never uploaded.</p>
 
@@ -31,7 +32,7 @@
 <p class="note" style="margin:8px 0 0">Reads MetaTrader 4/5 statements (HTML, CSV or Excel), TradingView trade lists, broker P&amp;L reports and tradebooks. If detection fails, you can pick the profit column yourself.</p>
 </div>
 
-<div class="card" id="histc" style="display:none"><h2>Your reports and certificates</h2><p class="note">Saved in this browser only. Request a signed certificate for any report you want to prove to others. The founder reproduces your report from your file before signing.</p><div id="hist"></div></div>
+<div class="card" id="histc" style="display:none"><h2>Your reports and certificates</h2><p class="note">Saved in this browser only. Request a signed certificate for any report you want to prove to others. The founder reproduces your report from your file before signing.</p><div id="hist"></div><button type="button" id="hclr" style="margin-top:12px;background:transparent;color:var(--acc)">Clear saved reports</button></div>
 <div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
 <div id="out">
 <div class="card"><div class="score"><div class="big" id="sc">0</div>
@@ -51,7 +52,9 @@
 <p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
 </div>
 </main>
+<footer id="sf"></footer>
 <div id="wait" role="status" aria-live="polite"><div class="wbox"><div id="wtx">Preparing</div><svg id="wsvg" viewBox="0 0 300 80" aria-hidden="true"><polyline id="wcur" points="0,40 300,40"/></svg><div class="wbar"><i id="wfill"></i></div><div class="wpct" id="wp">0%</div></div></div>
+<script src="js/config.js"></script>
 <script src="js/util.js"></script>
 <script src="js/parse.js"></script>
 <script src="js/brokers.js"></script>
@@ -63,5 +66,6 @@
 <script src="js/walkforward.js"></script>
 <script src="js/flow.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/shell.js"></script>
 </body>
 </html>
