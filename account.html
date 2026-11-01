@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Your account | Robustly</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="css/shell.css"><link rel="stylesheet" href="css/site.css"></head><body>
+<header id="sh"></header>
+<main class="prose"><h1>Your account</h1>
+<div id="off" hidden><p>Accounts open soon. The tool works without one, and nothing is lost.</p><p><a class="btn" href="tool.html">Open the tool</a></p></div>
+<div id="login" hidden><p>Sign in with your email. We send you a link, so there is no password.</p>
+<form class="vform" id="lf"><input id="em" type="email" placeholder="you@example.com" aria-label="Email" required><button class="btn" type="submit">Email me a sign-in link</button></form><p class="fine" id="lm"></p></div>
+<div id="main" hidden><p>Signed in as <b id="who"></b> &middot; <a href="#" id="out">Sign out</a></p>
+<h2>Your plan</h2><p id="plan"></p><p><a class="btn" id="up" hidden target="_blank" rel="noopener">Upgrade to Pro</a></p><p class="fine" id="upn" hidden>Pay with the same email you signed in with. Your plan unlocks within a minute or two of payment.</p>
+<h2>Saved reports</h2><p class="fine">Only the summary is saved: Report ID, score, headline, trade count, file name and date. Never your trade file.</p><div id="reps"></div>
+<h2>Certificate requests</h2><div id="reqs"></div><p class="fine" id="lm2"></p></div></main>
+<footer id="sf"></footer>
+<script src="js/config.js"></script><script src="js/shell.js"></script><script src="js/backend.js"></script><script src="js/account.js"></script></body></html>

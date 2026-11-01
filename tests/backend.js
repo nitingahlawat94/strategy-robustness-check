@@ -1,0 +1,20 @@
+const fs=require('fs'),crypto=require('crypto');
+let bad=0;const chk=(n,c,x)=>{console.log((c?'PASS ':'FAIL ')+n+(x?'  '+x:''));if(!c)bad++};
+(async()=>{
+  const{hmacHex,same,proFromEvent}=await import('../backend/functions/razorpay-webhook/webhook.mjs');
+  const body='{"event":"payment.captured"}',secret='whsec_test';
+  chk('Webhook HMAC matches Node reference',await hmacHex(secret,body)===crypto.createHmac('sha256',secret).update(body).digest('hex'));
+  chk('same() accepts equal and rejects different or unequal-length strings',same('abc','abc')&&!same('abc','abd')&&!same('abc','abcd')&&!same('a',undefined));
+  const ev=(o={})=>({event:'payment.captured',payload:{payment:{entity:{id:'pay_1',status:'captured',currency:'INR',amount:49900,email:'A@B.com',...o}}}});
+  chk('Valid captured payment is accepted and email lowercased',JSON.stringify(proFromEvent(ev(),49900))==='{"id":"pay_1","email":"a@b.com","amount":49900}');
+  chk('Wrong amount is ignored',proFromEvent(ev({amount:100}),49900)===null);
+  chk('Non-INR, failed, or email-less payments are ignored',proFromEvent(ev({currency:'USD'}),0)===null&&proFromEvent(ev({status:'failed'}),0)===null&&proFromEvent(ev({email:''}),0)===null);
+  chk('Other events are ignored',proFromEvent({event:'order.paid'},0)===null&&proFromEvent(null,0)===null);
+  const sql=fs.readFileSync(__dirname+'/../backend/schema.sql','utf8'),tables=[...sql.matchAll(/create table public\.(\w+)/g)].map(m=>m[1]);
+  chk('Every table has Row Level Security enabled ('+tables.length+' tables)',tables.every(t=>sql.includes('alter table public.'+t+' enable row level security')));
+  chk('No policy lets a browser user write profiles, payments or certificates',!/on public\.(profiles|payments|certificates) for (insert|update|delete|all)/.test(sql));
+  chk('Review inserts are forced to unapproved',/on public\.reviews for insert[^;]*approved = false/.test(sql));
+  const js=fs.readFileSync(__dirname+'/../js/config.js','utf8')+fs.readFileSync(__dirname+'/../js/backend.js','utf8');
+  global.window={};global.location={href:'https://x.io/a/index.html'};
+  const BE=eval(js+';BE');chk('Backend is off and harmless when no keys are set',BE.on===false&&await BE.user()===null&&await BE.init()===null);
+  process.exit(bad?1:0)})();

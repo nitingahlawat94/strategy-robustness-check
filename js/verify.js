@@ -8,8 +8,9 @@ function show(d){$('#vr').innerHTML=`<div class="cert"><div class="seal">&#10003
 <p class="vok">Signature valid. This certificate was issued by Robustly and has not been edited.</p></div><p><button class="btn ghost" type="button" onclick="window.print()">Print or save as PDF</button></p>`}
 async function check(raw){
   const id=norm(raw);if(!id)return say('bad','That does not look like a Report ID. It should look like RBLY-1ADA-7215-7A36.');
-  let reg;try{reg=await(await fetch('data/registry.json',{cache:'no-store'})).json()}catch(e){return say('bad','Could not load the certificate registry. Check your connection.')}
-  const c=reg.certificates.find(x=>x.data.rid===id);
+  let c=null;
+  if(BE.on){try{c=await BE.publicCert(id)}catch(e){}}
+  if(!c){try{const reg=await(await fetch('data/registry.json',{cache:'no-store'})).json();c=reg.certificates.find(x=>x.data.rid===id)||null}catch(e){if(!BE.on)return say('bad','Could not load the certificate registry. Check your connection.')}}
   if(!c)return say('no','No certificate has been issued for '+id+'. A Report ID alone proves nothing, because anyone can generate one by running any file through the tool. If someone claims a result with this ID, ask them for the certificate.');
   let ok=false;try{ok=await certValid(c)}catch(e){}
   if(!ok)return say('bad','This registry entry does not match its signature. Do not trust it.');

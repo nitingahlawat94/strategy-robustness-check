@@ -54,3 +54,4 @@ h1,.sub,details,.file{display:none}main{max-width:none;padding:0}h2{break-after:
 .hrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:10px 0;font-size:14px}
 .hrow a{padding:7px 12px;border:1px solid var(--acc);border-radius:6px;color:var(--acc);text-decoration:none;font-weight:600}
 @media print{#wait,#histc{display:none}}
+[hidden]{display:none!important}

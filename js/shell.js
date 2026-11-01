@@ -1,7 +1,7 @@
 // Shared header, footer, mobile menu and contact wiring for every page.
 (function(){
   const R=ROBUSTLY,$=s=>document.querySelector(s),home=/(^|\/)(index\.html)?$/.test(location.pathname),a=h=>(home?'':'index.html')+h;
-  const links=[['Why Robustly',a('#different')],['Checks',a('#checks')],['Pricing',a('#pricing')],['Verify','verify.html'],['About','about.html'],['Methodology','methodology.html']];
+  const links=[['Why Robustly',a('#different')],['Checks',a('#checks')],['Pricing',a('#pricing')],['Verify','verify.html'],['About','about.html'],['Methodology','methodology.html']];if(R.supabaseUrl)links.push(['Account','account.html']);
   const logo=c=>`<a class="logo ${c||''}" href="index.html"><img class="mark" src="img/mark.png" alt="" width="30" height="30"><span>Robust<b>ly</b></span></a>`;
   const sh=$('#sh'),sf=$('#sf'),m=$('main');if(m&&!m.id)m.id='main';
   if(sh){sh.innerHTML=`<a class="skip" href="#${m?m.id:'main'}">Skip to content</a><div class="sh-in">${logo()}<button class="menu" type="button" aria-label="Menu" aria-expanded="false"><i></i><i></i><i></i></button><nav>${links.map(([t,h])=>`<a href="${h}">${t}</a>`).join('')}<a class="sh-btn" href="tool.html">Open the tool</a></nav></div>`;

@@ -36,7 +36,7 @@
 <div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
 <div id="out">
 <div class="card"><div class="score"><div class="big" id="sc">0</div>
-<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div><div class="note" id="rid"></div></div></div></div>
+<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div><div class="note" id="rid"></div><button type="button" id="bsave" hidden style="margin-top:10px">Save to my account</button></div></div></div>
 <div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
 <div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
 <div class="card"><h2>The honest read</h2><div class="verdict" id="hrh"></div><h3>Top concerns</h3><ol class="fl" id="hrcn"></ol><h3>In your favour</h3><ul class="fl" id="hrs"></ul><div class="grid" id="hrt" style="margin-top:12px"></div><p class="note">Written by fixed rules from your own numbers. It is not an AI prediction and not advice.</p></div>
@@ -55,6 +55,7 @@
 <footer id="sf"></footer>
 <div id="wait" role="status" aria-live="polite"><div class="wbox"><div id="wtx">Preparing</div><svg id="wsvg" viewBox="0 0 300 80" aria-hidden="true"><polyline id="wcur" points="0,40 300,40"/></svg><div class="wbar"><i id="wfill"></i></div><div class="wpct" id="wp">0%</div></div></div>
 <script src="js/config.js"></script>
+<script src="js/backend.js"></script>
 <script src="js/util.js"></script>
 <script src="js/parse.js"></script>
 <script src="js/brokers.js"></script>

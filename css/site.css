@@ -60,3 +60,4 @@ blockquote{margin:0 0 18px;font:italic clamp(24px,3.4vw,36px)/1.25 "Iowan Old St
 .prose a.btn{color:#1a1203}.prose a.btn.ghost{color:var(--ink)}.prose .cta{margin-top:12px}
 @media print{#sh,#sf{display:none}}
 .cert .logo{color:#4f7df0;font:700 28px Georgia,serif}.cert .logo b{color:var(--acc)}
+[hidden]{display:none!important}
