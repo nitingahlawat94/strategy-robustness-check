@@ -16,5 +16,7 @@ let bad=0;const chk=(n,c,x)=>{console.log((c?'PASS ':'FAIL ')+n+(x?'  '+x:''));i
   chk('Review inserts are forced to unapproved',/on public\.reviews for insert[^;]*approved = false/.test(sql));
   const js=fs.readFileSync(__dirname+'/../js/config.js','utf8')+fs.readFileSync(__dirname+'/../js/backend.js','utf8');
   global.window={};global.location={href:'https://x.io/a/index.html'};
-  const BE=eval(js+';BE');chk('Backend is off and harmless when no keys are set',BE.on===false&&await BE.user()===null&&await BE.init()===null);
+  const [BE,kk]=eval(js+';[BE,keyKind]');chk('Backend is off and harmless when no keys are set',BE.on===false&&await BE.user()===null&&await BE.init()===null);
+  const jwt=r=>'x.'+Buffer.from(JSON.stringify({role:r})).toString('base64url')+'.y';
+  chk('Key checker recognises public, secret and publishable keys',kk(jwt('anon'))==='anon'&&kk(jwt('service_role'))==='service'&&kk('sb_secret_abc')==='secret'&&kk('sb_publishable_abc')==='publishable'&&kk('nonsense')==='unknown');
   process.exit(bad?1:0)})();

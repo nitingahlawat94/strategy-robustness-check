@@ -8,6 +8,7 @@ const BE={
   async signIn(email){const c=await this.init(),{error}=await c.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.replace(/[^/]*$/,'')+'account.html'}});if(error)throw error},
   async signOut(){const c=await this.init();await c.auth.signOut()},
   async saveReport(r){const c=await this.init(),u=await this.user();if(!u)throw new Error('Sign in first.');const{error}=await c.from('reports').upsert({user_id:u.id,rid:r.rid,score:r.sc,headline:r.hl,n:r.n,source:r.src},{onConflict:'user_id,rid'});if(error)throw error},
+  async clearReports(){const c=await this.init(),u=await this.user();if(!u)return;const{error}=await c.from('reports').delete().eq('user_id',u.id);if(error)throw error},
   async requestCert(r,holder){const c=await this.init(),u=await this.user();if(!u)return;const{error}=await c.from('certificate_requests').insert({user_id:u.id,rid:r.rid,score:r.sc,n:r.n,holder:holder||null});if(error)throw error},
   async list(t){const c=await this.init(),{data,error}=await c.from(t).select('*').order('created_at',{ascending:false});if(error)throw error;return data||[]},
   async publicCert(rid){const c=await this.init(),{data}=await c.from('certificates').select('data,sig').eq('rid',rid).maybeSingle();return data},
@@ -15,3 +16,6 @@ const BE={
   async addReview(x){const c=await this.init(),{error}=await c.from('reviews').insert({rating:+x.rating,body:x.review,name:x.name||null});if(error)throw error},
   async joinWaitlist(email){const c=await this.init(),{error}=await c.from('waitlist').insert({email:email.trim().toLowerCase()});if(error&&error.code!=='23505')throw error}
 };
+
+// Tells setup-check whether a pasted key is safe to publish.
+function keyKind(k){k=String(k||'');if(/^sb_secret_/.test(k))return'secret';if(/^sb_publishable_/.test(k))return'publishable';try{const r=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role;return r==='anon'?'anon':r==='service_role'?'service':'unknown'}catch(e){return'unknown'}}
