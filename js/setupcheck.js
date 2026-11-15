@@ -6,7 +6,7 @@
     const k=keyKind(R.supabaseAnonKey),bad=k==='service'||k==='secret';
     add(!bad,'Key type',bad?'DANGER: this is a SECRET key. Remove it from js/config.js right now and rotate it in Supabase.':k==='unknown'?'format not recognised (it may still work)':'public key, safe to publish');
     try{const c=await BE.init(),{error}=await c.auth.getSession();add(!error,'Can reach your Supabase project',error&&error.message)}catch(e){add(false,'Can reach your Supabase project',e.message)}
-    for(const t of ['profiles','payments','reports','certificate_requests','certificates','reviews','waitlist']){try{const c=await BE.init(),{error}=await c.from(t).select('*',{count:'exact',head:true});add(!error,'Table "'+t+'" exists',error&&error.message)}catch(e){add(false,'Table "'+t+'" exists',e.message)}}
+    for(const t of ['profiles','payments','reports','certificate_requests','certificates','reviews','waitlist']){try{const c=await BE.init(),{error}=await c.from(t).select('*').limit(1);add(!error,'Table "'+t+'" exists',error&&error.message)}catch(e){add(false,'Table "'+t+'" exists',e.message)}}
   }
   add(R.email?true:null,'Business email',R.email?'set':'not set (contact buttons use LinkedIn)');
   add(R.paymentUrl?true:null,'Payment link',R.paymentUrl?'set':'not set yet (the Razorpay step)');
