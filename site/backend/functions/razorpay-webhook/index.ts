@@ -1,0 +1,28 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { hmacHex, same } from './webhook.mjs';
+Deno.serve(async (req: Request) => {
+  if (req.method !== 'POST') return new Response('POST only', { status: 405 });
+  const webhookSecret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET'), keyId = Deno.env.get('RAZORPAY_KEY_ID'), keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+  if (!webhookSecret || !keyId || !keySecret) return new Response('server not configured', { status: 500 });
+  const raw = await req.text(), sig = req.headers.get('x-razorpay-signature') || '';
+  if (!same(await hmacHex(webhookSecret, raw), sig)) return new Response('bad signature', { status: 400 });
+  const event = JSON.parse(raw);
+  if (event?.event !== 'payment.captured') return new Response('ignored');
+  const pay = event.payload?.payment?.entity;
+  if (!pay?.id || !pay?.order_id || pay.status !== 'captured') return new Response('ignored');
+  const auth = 'Basic ' + btoa(`${keyId}:${keySecret}`);
+  const orderResponse = await fetch(`https://api.razorpay.com/v1/orders/${encodeURIComponent(pay.order_id)}`, { headers: { Authorization: auth } });
+  if (!orderResponse.ok) return new Response('order lookup failed', { status: 502 });
+  const order = await orderResponse.json(), notes = order.notes || {};
+  const tier = notes.package, amount = tier === 'basic' ? Number(Deno.env.get('BASIC_AMOUNT_MINOR') || 700) : tier === 'pro' ? Number(Deno.env.get('PRO_AMOUNT_MINOR') || 2300) : 0;
+  const currency = Deno.env.get('PAYMENT_CURRENCY') || 'USD';
+  if (!amount || !/^[A-F0-9]{12}$/.test(String(notes.report_id || '').toUpperCase()) || !notes.user_id || order.amount !== amount || order.currency !== currency || pay.amount !== amount || pay.currency !== currency || pay.order_id !== order.id) return new Response('order metadata mismatch', { status: 400 });
+  const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: pending, error: findError } = await db.from('payments').select('id,user_id,report_id,package,amount,currency').eq('provider_order_id', order.id).maybeSingle();
+  if (findError || !pending || pending.user_id !== notes.user_id || pending.report_id !== String(notes.report_id).toUpperCase() || pending.package !== tier || pending.amount !== amount || pending.currency !== currency) return new Response('order not registered', { status: 400 });
+  const { error: updateError } = await db.from('payments').update({ provider_payment_id: pay.id, status: 'captured', email: pay.email || null }).eq('provider_order_id', order.id);
+  if (updateError) return new Response('payment record error', { status: 500 });
+  const { error: accessError } = await db.from('report_access').upsert({ user_id: pending.user_id, report_id: pending.report_id, package: pending.package, payment_id: pending.id }, { onConflict: 'user_id,report_id' });
+  if (accessError) return new Response('access record error', { status: 500 });
+  return new Response('ok');
+});

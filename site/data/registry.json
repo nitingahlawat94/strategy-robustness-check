@@ -1,0 +1,17 @@
+{
+ "certificates": [
+  {
+   "data": {
+    "rid": "RBLY-0000-0000-0000",
+    "score": 78,
+    "headline": "Promising, but not proven",
+    "date": "2026-01-01",
+    "n": 300,
+    "level": "SAMPLE ONLY. Signed with a test key to show how certificates look.",
+    "ver": "0.6",
+    "holder": "SAMPLE (demo certificate)"
+   },
+   "sig": "yH3_5nBItzPM4Ya1JOPcBCQDyPqJa7UKIjrKgkelNJdbB34KhzLHpJT_tDitAh1iZOEK6KDizHmqrBPC-ooEzg"
+  }
+ ]
+}

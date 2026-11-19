@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strategy Robustness Check</title>
+<link rel="icon" href="img/favicon.png"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><link rel="stylesheet" href="css/shell.css"><link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="sh"></header>
+<main>
+<div id="ph"><div class="logo">Robust<b>ly</b></div><div style="text-align:right"><b>Strategy robustness report</b><br><span id="phm" class="note"></span></div></div>
+<h1>Strategy robustness check</h1>
+<p class="sub">Choose a one-time report package, then upload your trade list. Analysis stays in your browser; your file is never uploaded.</p>
+<div class="card pay-card"><div class="package-head"><div><p class="package-kicker">ONE-TIME REPORT ACCESS</p><h2>Choose your depth</h2></div><p class="package-account">To attach access to your account, <a href="account.html?next=tool.html%3Fpackage%3Dbasic" id="tool-signin">sign in first</a>.</p></div><select id="package" class="package-sync" aria-label="Report package"><option value="basic">Basic — $7 per report</option><option value="pro">Pro — $23 per report</option></select><div class="package-grid" role="radiogroup" aria-label="Choose a report package"><button type="button" class="package-option selected" data-package="basic" role="radio" aria-checked="true"><span class="package-top"><span class="package-name">Basic</span><span class="package-price">$7<span> / report</span></span></span><span class="package-summary">A clear first read on your strategy.</span><span class="package-rule"></span><span class="package-feature">Key metrics and a concise summary</span><span class="package-feature muted-feature">No full analysis, PDF, or certificate request</span><span class="package-choice">Selected</span></button><button type="button" class="package-option" data-package="pro" role="radio" aria-checked="false"><span class="package-top"><span class="package-name">Pro <span class="package-badge">DEEP REVIEW</span></span><span class="package-price">$23<span> / report</span></span></span><span class="package-summary">The complete evidence set for a closer review.</span><span class="package-rule"></span><span class="package-feature">Full report, risk analysis, and PDF export</span><span class="package-feature">Certificate request for manual review</span><span class="package-choice">Choose Pro</span></button></div><p id="checkout-note" class="note" role="status">Secure checkout is not live yet. Package selection is a preview; reports remain locked and no charge will be taken.</p></div>
+
+<div class="card">
+<div id="drop">Drop a trade export here (CSV, Excel or MetaTrader HTML), or choose a file</div>
+<div class="row">
+<label class="file">Choose file<input id="f" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label>
+<button class="ghost" id="demo" type="button">Use sample data</button>
+<div><label for="bal">Starting balance</label><input id="bal" type="number" value="100000" min="1"></div>
+<div><label for="ruin">Ruin level (drawdown %)</label><input id="ruin" type="number" value="30" min="1" max="99"></div>
+<div><label for="nt">Variants tried</label><input id="nt" type="number" value="1" min="1"></div>
+<button id="go" type="button">Start analysis</button>
+</div>
+<div id="msg" role="alert"></div><div id="map"></div><div id="info" role="status"></div>
+<details><summary>Optional: out-of-sample and optimization data</summary>
+<p class="note">Load trades your optimizer never saw (a forward test) or your live trades. You get a walk-forward comparison and a live health check. Sharper Deflated Sharpe: paste each optimization pass on its own line as profit, or profit and trade count (e.g. 4200, 310). Five or more lines.</p>
+<div class="row"><label class="file">Choose live or out-of-sample file<input id="f2" type="file" accept=".csv,.txt,.xlsx,.xls,.htm,.html,text/csv"></label><span id="f2n" class="note"></span></div>
+<label for="ps" style="margin-top:10px">Optimization pass profits</label><textarea id="ps" rows="3" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit"></textarea></details>
+<details><summary>Optional: real walk-forward on price data</summary><p class="note">Upload a price CSV (Close column, 800+ bars). It re-optimizes a moving-average crossover on each in-sample window and tests the winner on the unseen window after it. This is a demonstration engine, not your own strategy.</p><div class="row"><label class="file">Choose price CSV<input id="fp" type="file" accept=".csv,.txt,text/csv"></label><div><label for="fo">Folds</label><input id="fo" type="number" value="5" min="2" max="12"></div><div><label for="fc">Cost per position change (%)</label><input id="fc" type="number" value="0.01" step="0.01" min="0"></div></div></details>
+<p class="note" style="margin:8px 0 0">Reads MetaTrader 4/5 statements (HTML, CSV or Excel), TradingView trade lists, broker P&amp;L reports and tradebooks. If detection fails, you can pick the profit column yourself.</p>
+</div>
+
+<div class="card" id="histc" style="display:none"><h2>Your reports and certificates</h2><p class="note">Report summaries are saved in this browser. Certificate requests are planned for Pro. No real certificates have been issued yet; any request will require manual review.</p><div id="hist"></div><button type="button" id="hclr" style="margin-top:12px;background:transparent;color:var(--acc)">Clear saved reports</button></div>
+<div class="card" id="wfo" style="display:none"><h2>Walk-forward on price data</h2><div class="grid" id="wfs"></div><div class="scroll" id="wft"></div><p class="note">Each fold optimizes on three segments and trades the next segment unseen. Returns are simple sums of per-bar returns, with costs charged on every position change.</p></div>
+<div id="out">
+<div class="card"><div class="score"><div class="big" id="sc">0</div>
+<div class="gauge"><div class="bar"><i id="mk"></i></div><div class="verdict" id="vd"></div><div class="note" id="src"></div><div class="note" id="rid"></div><button type="button" id="bsave" hidden style="margin-top:10px">Save to my account</button></div></div></div>
+<div class="card"><h2>Warning signs</h2><ul class="fl" id="fl"></ul></div>
+<div class="card"><h2>Key numbers</h2><div class="grid" id="mt"></div></div>
+<div class="card pro-only" id="honest-card"><h2>The honest read</h2><div class="verdict" id="hrh"></div><h3>Top concerns</h3><ol class="fl" id="hrcn"></ol><h3>In your favour</h3><ul class="fl" id="hrs"></ul><div class="grid" id="hrt" style="margin-top:12px"></div><p class="note">Written by fixed rules from your own numbers. It is not an AI prediction and not advice.</p></div>
+<div class="card pro-only" id="lvc" style="display:none"><h2>Live health check</h2><p class="note">Do your live or forward trades still look like your backtest? Load them under the out-of-sample option above.</p><div class="grid" id="lv"></div><div class="verdict" id="lvv"></div></div>
+<div class="card pro-only" id="sizing-card"><h2>Safe sizing and recovery</h2><div class="grid" id="sz"></div><p class="note">A scenario simulation built from your own trades, not advice. The multiplier scales every trade's profit and loss, with the balance held fixed. It assumes future trades resemble past ones and arrive independently.</p></div>
+<div class="card pro-only" id="stability-card"><h2>Stability: first half vs second half</h2><div class="grid" id="hv"></div></div>
+<div class="card pro-only" id="wfc" style="display:none"><h2>Walk-forward: in-sample vs out-of-sample</h2><div class="grid" id="wf"></div></div>
+<div class="card pro-only" id="overfit-card"><h2>Overfitting, costs and consistency</h2><div class="grid" id="ex"></div><div class="scroll" id="wb"></div><p class="note">Windows show profit in consecutive slices of your history. This is a consistency check, not a full walk-forward, which needs your optimizer.</p></div>
+<div class="card pro-only" id="equity-card"><h2>Your equity vs 40 reshuffled orders</h2><p class="note">Same trades, different order. A wide fan means your result depends on luck of sequence.</p><div class="scroll" id="c1"></div></div>
+<div class="card pro-only" id="drawdown-card"><h2>Worst drawdown across 2,000 reshuffles</h2><div class="scroll" id="c2"></div></div>
+<div class="card"><button type="button" onclick="window.print()">Save report as PDF</button>
+<details><summary>How the score works</summary><p>Score out of 100: 20 points for how often profit survives 2,000 resamples of your trades; 15 for profit factor (full marks at 2.0); 15 for sample size (full marks at 200 trades); 20 for Deflated Sharpe confidence; 15 for how close your backtest drawdown is to the 95th-percentile reshuffled drawdown; 15 for staying profitable after removing the best 5% of winners. Up to 15 points are deducted if the second half of your history is much weaker than the first, and up to 25 if your out-of-sample trades fail.</p><p>Limits: scores are capped at 60 when there are fewer than 100 trades. It only sees your trade list, so it cannot know how many variations you tried before this one. It assumes trades are independent, which real markets often violate. The weights are a judgment call, not a proven predictor.</p><p>Deflated Sharpe follows Bailey and López de Prado and assumes your tried variants had noise-like Sharpe ratios, so enter how many variants you tested. Cost stress subtracts a share of your average trade from every trade.</p><p>Luck test: flips the sign of each trade at random 2,000 times to see how often pure chance matches your profit. Scores are capped at 70 above p=0.05 and at 55 above p=0.10. The price walk-forward uses a moving-average demo engine; for your own EA, use the MT5 tester's forward-period option and load the forward trades as out-of-sample.</p><p>Imports are detected automatically from MetaTrader 4/5 statements, TradingView trade lists, broker P&amp;L reports with a realised P&amp;L column (such as Groww's), tradebooks with buy and sell fills (matched first-in-first-out, fees not included) and balance-curve exports. If detection fails you can choose the profit column. Live broker connections are not possible in a static page.</p></details></div>
+<p class="note">Analysis of past trades only. It is not investment advice, and a high score does not predict future profit.</p>
+</div>
+</main>
+<footer id="sf"></footer>
+<div id="wait" role="status" aria-live="polite"><div class="wbox"><div id="wtx">Preparing</div><svg id="wsvg" viewBox="0 0 300 80" aria-hidden="true"><polyline id="wcur" points="0,40 300,40"/></svg><div class="wbar"><i id="wfill"></i></div><div class="wpct" id="wp">0%</div></div></div>
+<script src="js/config.js"></script>
+<script src="js/backend.js"></script>
+<script src="js/util.js"></script>
+<script src="js/parse.js"></script>
+<script src="js/brokers.js"></script>
+<script src="js/trust.js"></script>
+<script src="js/health.js"></script>
+<script src="js/insight.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/walkforward.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/shell.js"></script>
+</body>
+</html>

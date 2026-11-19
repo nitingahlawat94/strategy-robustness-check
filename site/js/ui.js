@@ -1,0 +1,66 @@
+function render(R){
+  const basic=SELECTED_PACKAGE==='basic';
+  document.querySelectorAll('.pro-only').forEach(e=>e.style.display=basic?'none':'block');
+  $('#out').style.display='block';
+  $('#sc').textContent=R.sc;$('#mk').style.left=R.sc+'%';
+  $('#vd').textContent=R.wr===1?'Check your file: no losing trades found':R.sc>=75?'Looks robust':R.sc>=50?'Mixed: some fragility':'Fragile: likely overfit or lucky';
+  $('#src').textContent=`${R.n} trades read from ${srcName}`;
+  $('#rid').textContent='Report ID RBLY-'+R.rid.slice(0,4)+'-'+R.rid.slice(4,8)+'-'+R.rid.slice(8)+'. The same file and settings always give the same ID and numbers.';
+  if(!basic)renderInsights(R);
+  $('#fl').innerHTML=basic?R.fl.slice(0,2).map(t=>`<li>${t}</li>`).join(''):R.fl.map(t=>`<li>${t}</li>`).join('');
+  const m=[['Net profit',fmt(R.total)],['Trades',R.n],['Win rate',pct(R.wr)],['Profit factor',isFinite(R.pf)?R.pf.toFixed(2):'∞'],['Avg win / avg loss',fmt(R.avgW)+' / '+fmt(R.avgL)],['Expectancy per trade',fmt(R.exp,2)],['Backtest max drawdown',pct(R.act.dd)],['Median shuffled drawdown',pct(R.p50)],['Worst-case (95%) drawdown',pct(R.p95)],['Longest losing streak',R.ls],['Losing streak, 95% case',R.ls95],['Chance of profit',pct(R.pProf)],['Chance of ruin',pct(R.pRuin)]];
+  $('#mt').innerHTML=m.slice(0,basic?5:m.length).map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+  if(basic){$('#fl').innerHTML=R.fl.slice(0,2).map(t=>`<li>${t}</li>`).join('');const save=$('#bsave');save.hidden=true;const pdf=document.querySelector('#out button[onclick="window.print()"]');if(pdf)pdf.closest('.card').style.display='none'}else{const save=$('#bsave');if(save&&BE.on)save.hidden=false;const pdf=document.querySelector('#out button[onclick="window.print()"]');if(pdf)pdf.closest('.card').style.display='block'}
+  if(basic){$('#out').scrollIntoView({behavior:'smooth'});return}
+  const hv=[['First half',R.H1],['Second half',R.H2]].flatMap(([t,x])=>[[t+' net profit',fmt(x.net)],[t+' profit factor',isFinite(x.pf)?x.pf.toFixed(2):'∞'],[t+' win rate',pct(x.wr)]]);
+  $('#hv').innerHTML=hv.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+  $('#wfc').style.display=R.wf?'block':'none';
+  if(R.wf){const{a,b}=R.wf,eff=a.exp>0?b.exp/a.exp:0,pff=x=>isFinite(x)?x.toFixed(2):'∞';$('#wf').innerHTML=[['In-sample trades / net',a.n+' / '+fmt(a.net)],['Out-of-sample trades / net',b.n+' / '+fmt(b.net)],['In-sample profit factor',pff(a.pf)],['Out-of-sample profit factor',pff(b.pf)],['Win rate in / out',pct(a.wr)+' / '+pct(b.wr)],['Walk-forward efficiency',pct(Math.max(0,eff))]].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('')}
+  $('#lvc').style.display=R.hl?'block':'none';
+  if(R.hl){const h=R.hl;$('#lv').innerHTML=[['Live trades',h.m],['Live net profit',fmt(h.tot)],['Percentile vs backtest',(h.pc*100).toFixed(0)+'th'],['Chance of a drawdown this deep',pct(h.pd)],['Avg trade, live / backtest',fmt(h.liveMu,2)+' / '+fmt(h.mu,2)],['Drift alarm',h.alarm>0?'Trade #'+h.alarm:'None']].map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+    $('#lvv').textContent=h.status+(h.status=='Healthy'?': live results are within what your backtest predicts.':h.status=='Watch'?': live results are weaker than most backtest-like outcomes. Keep monitoring.':': live results are worse than 95% of backtest-like outcomes, or the drift alarm fired. The edge may have broken.')}
+  const sz=R.sz?[['Size multiplier for 5% ruin risk',R.sz.cap?'200x or more':R.sz.k>0?R.sz.k.toFixed(2)+'x':'none found'],['Ruin risk at current size',pct(R.sz.at1)]]:[['Size multiplier','n/a: strategy lost money']];
+  $('#sz').innerHTML=sz.concat([['Longest time underwater (backtest)',R.act.uw+' trades'],['Longest time underwater (95% case)',R.uw95+' trades']]).map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+  const ex=[['Deflated Sharpe confidence ('+R.tr+' variants)',pct(R.dsrv)],['Net profit, costs +10% of avg trade',fmt(R.cost[0])],['Net profit, costs +25%',fmt(R.cost[1])],['Net profit, costs +50%',fmt(R.cost[2])],['Extra cost that erases profit',pct(Math.max(0,R.be))+' of avg trade'],['Profitable time windows',R.seg.filter(x=>x>0).length+' of '+R.K],['Luck test p-value (lower is better)',R.pL.toFixed(3)]];
+  $('#ex').innerHTML=ex.map(([k,v])=>`<div class="m"><b>${v}</b><span>${k}</span></div>`).join('');
+  const wm=Math.max(...R.seg.map(Math.abs))||1;
+  $('#wb').innerHTML=`<svg viewBox="0 0 ${R.K*70} 100" role="img" aria-label="Profit by time window"><line x1="0" x2="${R.K*70}" y1="50" y2="50" stroke="var(--line)"/>`+R.seg.map((x,i)=>{const h=Math.abs(x)/wm*40;return`<rect x="${i*70+10}" y="${x>=0?50-h:50}" width="50" height="${Math.max(h,1)}" fill="var(--${x>=0?'good':'bad'})"/><text x="${i*70+35}" y="96" font-size="10" text-anchor="middle" fill="var(--mute)">W${i+1}</text>`}).join('')+'</svg>';
+  $('#c1').innerHTML=fan(R);$('#c2').innerHTML=hist(R);
+  $('#out').scrollIntoView({behavior:'smooth'});
+}
+async function go(){
+  $('#msg').textContent='';
+  if(!ROBUSTLY.paymentFunctionsReady||!ROBUSTLY.razorpayKeyId){$('#msg').textContent='Checkout is not live yet. No charge has been made and no report was unlocked.';return}
+  if(!BE.on||!await BE.user()){sessionStorage.setItem('robustly.pendingPackage',SELECTED_PACKAGE);location.href='account.html?next='+encodeURIComponent('tool.html?package='+SELECTED_PACKAGE);return}
+  if(trades.length<10){$('#msg').textContent='Load a CSV with at least 10 non-zero trades first.';return}
+  const bal=+$('#bal').value,ru=+$('#ruin').value;
+  if(!(bal>0)||!(ru>0&&ru<100)){$('#msg').textContent='Enter a balance above 0 and a ruin level between 1 and 99.';return}
+  const P=$('#ps').value.split('\n').map(l=>(l.match(/-?\d+(\.\d+)?/g)||[]).map(Number)).filter(a=>a.length),variants=Math.max(1,Math.floor(+$('#nt').value||1));
+  if(P.length>=5)variants=P.length;
+  const reportIdValue=reportId(trades,bal,ru,variants,P,oosT).id;
+  const reveal=R=>{render(R);saveHist(R);const o=$('#out');o.classList.remove('reveal');[...o.children].forEach((c,i)=>c.style.setProperty('--i',i));void o.offsetWidth;o.classList.add('reveal')};
+  const runPaidReport=()=>runFlow(()=>analyse(trades,bal,ru,variants,P,oosT),reveal,P);
+  try{
+    const order=await BE.createReportOrder(reportIdValue,SELECTED_PACKAGE);
+    if(order.unlocked){runPaidReport();return}
+    const js=document.createElement('script');js.src='https://checkout.razorpay.com/v1/checkout.js';
+    js.onload=async()=>{try{const user=await BE.user();const opts={key:ROBUSTLY.razorpayKeyId,amount:order.amount,currency:order.currency,order_id:order.orderId,name:'Robustly',description:(SELECTED_PACKAGE==='pro'?'Pro':'Basic')+' report · one-time',prefill:{email:user?.email},handler:async response=>{try{const result=await BE.verifyReportPayment({...response,reportId:reportIdValue,package:SELECTED_PACKAGE});if(!result?.unlocked||result.reportId!==reportIdValue||result.package!==SELECTED_PACKAGE)throw new Error('Payment is still confirming. Refresh your account shortly.');runPaidReport()}catch(e){$('#msg').textContent=e.message||'Payment confirmation is pending.'}}};new Razorpay(opts).open()}catch(e){$('#msg').textContent=e.message||'Could not start secure checkout.'}};
+    js.onerror=()=>$('#msg').textContent='Could not load secure checkout. No charge was made.';document.head.appendChild(js)
+  }catch(e){$('#msg').textContent=e.message||'Could not start checkout.'}
+}
+function load(text,name){
+  try{const r=smartExtract(text);trades=r.vals;srcName=name+' ('+r.name+')';
+    if(trades.length<10){$('#msg').textContent=`Found only ${trades.length} usable trades (${r.name}). If this is a per-symbol summary, export the trade-level report or tradebook instead.`;return}
+    ready()}catch(e){$('#msg').textContent=e.message}
+}
+function readFile(f){if(f)loadFile(f)}
+$('#f').onchange=e=>readFile(e.target.files[0]);
+$('#f2').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{oosT=(await extractFile(f)).vals;$('#f2n').textContent=oosT.length+' out-of-sample trades loaded';if(trades.length>=10)ready()}catch(x){$('#msg').textContent=x.message}};
+$('#go').onclick=go;
+$('#demo').onclick=()=>{if(!ROBUSTLY.paymentFunctionsReady||!ROBUSTLY.razorpayKeyId){$('#msg').textContent='Checkout is not live yet. No charge has been made.';return}let t='Profit\n';const r=mkRng(42);for(let i=0;i<160;i++)t+=(r()<.52?(300+r()*500):-(250+r()*450)).toFixed(2)+'\n';load(t,'sample data');go()};
+const dz=$('#drop');
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('on')}));
+dz.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));
+
+if(typeof location!=='undefined'&&location.hash==='#sample')setTimeout(()=>$('#demo').click(),50);

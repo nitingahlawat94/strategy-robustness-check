@@ -1,0 +1,33 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { hmacHex, same } from '../razorpay-webhook/webhook.mjs';
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (req.method !== 'POST') return reply({ error: 'POST only' }, 405);
+  const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  const url = Deno.env.get('SUPABASE_URL')!, serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const keyId = Deno.env.get('RAZORPAY_KEY_ID'), keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+  if (!token || !keyId || !keySecret) return reply({ error: 'Payment verification is not configured.' }, 503);
+  const admin = createClient(url, serviceKey);
+  const { data: { user }, error: userError } = await admin.auth.getUser(token);
+  if (userError || !user) return reply({ error: 'Sign in to verify this purchase.' }, 401);
+  let b: Record<string, string>;
+  try { b = await req.json(); } catch { return reply({ error: 'Invalid payment response.' }, 400); }
+  const orderId = String(b.razorpay_order_id || ''), paymentId = String(b.razorpay_payment_id || ''), signature = String(b.razorpay_signature || '');
+  if (!orderId || !paymentId || !signature || !same(await hmacHex(keySecret, `${orderId}|${paymentId}`), signature)) return reply({ error: 'Payment signature could not be verified.' }, 400);
+  const { data: pending, error: pendingError } = await admin.from('payments').select('*').eq('provider_order_id', orderId).eq('user_id', user.id).maybeSingle();
+  if (pendingError || !pending) return reply({ error: 'This order does not belong to your account.' }, 403);
+  if (pending.report_id !== String(b.reportId || '').toUpperCase() || pending.package !== b.package) return reply({ error: 'This payment is for a different report or package.' }, 400);
+  const provider = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, { headers: { 'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`) } });
+  const payment = await provider.json();
+  if (!provider.ok || payment.order_id !== orderId || payment.status !== 'captured' || payment.amount !== pending.amount || payment.currency !== pending.currency) return reply({ error: 'Payment is not captured yet. No report access was granted.' }, 402);
+  const { data: order } = await admin.from('payments').select('provider_order_id,report_id,package,user_id,amount,currency').eq('provider_order_id', orderId).single();
+  if (!order || order.user_id !== user.id) return reply({ error: 'Order verification failed.' }, 403);
+  const { error: updateError } = await admin.from('payments').update({ provider_payment_id: paymentId, status: 'captured', email: user.email?.toLowerCase() || pending.email }).eq('provider_order_id', orderId);
+  if (updateError) return reply({ error: 'Payment was received but access could not be recorded.' }, 500);
+  const { data: saved } = await admin.from('payments').select('id').eq('provider_order_id', orderId).single();
+  const { error: grantError } = await admin.from('report_access').upsert({ user_id: user.id, report_id: order.report_id, package: order.package, payment_id: saved.id }, { onConflict: 'user_id,report_id' });
+  if (grantError) return reply({ error: 'Payment was received but report access could not be recorded.' }, 500);
+  return reply({ unlocked: true, package: order.package, reportId: order.report_id });
+});

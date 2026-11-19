@@ -1,0 +1,31 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (req.method !== 'POST') return reply({ error: 'POST only' }, 405);
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.replace(/^Bearer\s+/i, '');
+  const url = Deno.env.get('SUPABASE_URL')!, serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const keyId = Deno.env.get('RAZORPAY_KEY_ID'), keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+  if (!token || !keyId || !keySecret) return reply({ error: 'Checkout server is not configured.' }, 503);
+  const admin = createClient(url, serviceKey);
+  const { data: { user }, error: userError } = await admin.auth.getUser(token);
+  if (userError || !user?.email) return reply({ error: 'Sign in to purchase a report.' }, 401);
+  let body: { reportId?: string; package?: string };
+  try { body = await req.json(); } catch { return reply({ error: 'Invalid request.' }, 400); }
+  const reportId = String(body.reportId || '').toUpperCase(), tier = body.package;
+  if (!/^[A-F0-9]{12}$/.test(reportId) || !['basic', 'pro'].includes(tier || '')) return reply({ error: 'Choose a valid report and package.' }, 400);
+  const { data: existing, error: accessError } = await admin.from('report_access').select('package').eq('user_id', user.id).eq('report_id', reportId).maybeSingle();
+  if (accessError) return reply({ error: 'Report access storage is not ready.' }, 503);
+  if (existing?.package === 'pro' || existing?.package === tier) return reply({ unlocked: true, package: existing.package, reportId });
+  const amount = tier === 'basic' ? Number(Deno.env.get('BASIC_AMOUNT_MINOR') || 700) : Number(Deno.env.get('PRO_AMOUNT_MINOR') || 2300);
+  const currency = Deno.env.get('PAYMENT_CURRENCY') || 'USD';
+  const receipt = `r-${crypto.randomUUID().replaceAll('-', '').slice(0, 32)}`;
+  const response = await fetch('https://api.razorpay.com/v1/orders', { method: 'POST', headers: { 'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`), 'Content-Type': 'application/json' }, body: JSON.stringify({ amount, currency, receipt, notes: { user_id: user.id, report_id: reportId, package: tier } }) });
+  const order = await response.json();
+  if (!response.ok || !order.id) return reply({ error: 'Payment provider could not create an order.' }, 502);
+  const { error } = await admin.from('payments').insert({ provider: 'razorpay', provider_order_id: order.id, user_id: user.id, report_id: reportId, package: tier, email: user.email.toLowerCase(), amount, currency, status: 'pending' });
+  if (error) return reply({ error: 'Could not record the pending purchase.' }, 500);
+  return reply({ orderId: order.id, amount, currency });
+});
